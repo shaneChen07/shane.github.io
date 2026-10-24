@@ -5,7 +5,35 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <base target="_top">
 <!-- 島嶼小公民探險隊｜Google Apps Script 版　設計者：桃園市建德國小 煥文老師　© 2026 版權所有 -->
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}.pin.sq{padding:3px}.pin.sq .nm,.pin.sq .ps{display:none}
+.pins.far .pin{display:none}
+.isle.dim{opacity:.22}
+.rtag{position:absolute;left:0;top:0;pointer-events:auto;display:flex;align-items:center;gap:8px;padding:7px 14px 8px;border:0;border-radius:16px;background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 50%,transparent),0 4px 0 color-mix(in srgb,var(--rc) 70%,transparent),0 10px 22px -10px rgba(0,0,0,.5);color:var(--ink);white-space:nowrap;cursor:pointer;will-change:transform;font:inherit;z-index:1}
+.rtag b{font:400 20px/1 var(--f-display);color:color-mix(in srgb,var(--rc) 78%,var(--ink))}
+.rtag span{font:400 17px/1 var(--f-display);color:var(--ink)}
+.rtag i{font-style:normal}
+.rtag .rt-me{display:none;font:700 11px/1 var(--f-body);background:var(--rc);color:#fff;padding:4px 8px;border-radius:999px}
+.rtag.me .rt-me{display:inline-block}
+.rtag .rt-star{font:600 13px/1 var(--f-num);color:var(--gold)}
+.rtag .rt-star:empty{display:none}
+.rtag:hover,.rtag.hover,.rtag:focus-visible{box-shadow:inset 0 0 0 3px var(--rc),0 4px 0 color-mix(in srgb,var(--rc) 70%,transparent),0 12px 24px -10px rgba(0,0,0,.55);outline:none}
+.pins.far .rtag{padding:5px 10px 6px;gap:5px}.pins.far .rtag b,.pins.far .rtag span{font-size:16px}
+@media (min-width:901px){.hud-hint{left:400px;transform:none}}@media (max-width:1320px){.hud-hint{display:none}}
+.hud-region{top:96px;right:max(16px,env(safe-area-inset-right,0px));width:304px;padding:14px 16px;border-radius:18px;display:grid;gap:10px}
+.rc-head{display:flex;gap:10px;align-items:center}.rc-head b{display:block;font:400 19px/1.25 var(--f-display)}.rc-head small{display:block;color:var(--ink-2);font-size:12.5px;margin-top:2px}
+.rc-dot{width:14px;height:14px;border-radius:50%;background:var(--rc);flex:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--rc) 25%,transparent)}
+.rc-zones{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.rc-zones li{display:grid;grid-template-columns:auto 1fr;column-gap:8px;font-weight:700;font-size:14px;line-height:1.3}
+.rc-zones li span{grid-row:span 2;font:600 11px/1 var(--f-num);color:#fff;background:var(--z);border-radius:6px;padding:5px 6px;align-self:center}
+.rc-zones small{font-weight:500;color:var(--ink-2);font-size:12px}
+.rc-act{display:flex;gap:8px;flex-wrap:wrap}
+.map .lake{fill:var(--sea);opacity:.85}.map .river{fill:none;stroke:var(--sea);stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.map .mtn{fill:color-mix(in srgb,var(--z) 45%,var(--ink));opacity:.5}.map .mesa{fill:none;stroke:color-mix(in srgb,var(--z) 60%,var(--ink));stroke-width:2;opacity:.6}
+.map .wall{stroke:var(--ink-2);stroke-width:6;stroke-linecap:round}.map .bridge{stroke:#9C6B3F;stroke-width:8;stroke-linecap:round}
+@media (max-width:900px){.hud-region{top:auto;bottom:62px;left:12px;right:12px;width:auto;padding:12px 14px}}
+@media (max-width:560px){.hud-ctrl [data-act=rot-l],.hud-ctrl [data-act=rot-r]{display:none}.rc-zones{display:none}.rtag b{font-size:17px}.rtag{padding:6px 11px 7px}}
+@media (max-width:560px){.pins.far .rtag .rt-star{display:none}.pins.far .rtag .rt-me{font-size:10px;padding:3px 5px}.pins.far .rtag b,.pins.far .rtag span{font-size:14px}}
+</style>
 <title>島嶼小公民探險隊</title>
 <meta name="description" content="島嶼小公民探險隊：康軒、翰林、南一版國小社會五上、六上的 18 關 3D 島嶼冒險，收集紀念郵票並領取通關證書。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -549,20 +577,21 @@ details.lvd summary{cursor:pointer;display:flex;gap:12px;align-items:center;flex
 </header>
 
 <main class="stage" id="stage">
-  <section class="world" id="world" aria-label="寶島群島 3D 冒險地圖">
-    <div class="loading3d" id="loading3d">正在打造寶島群島…</div>
+  <section class="world" id="world" aria-label="島嶼星空 3D 冒險地圖">
+    <div class="loading3d" id="loading3d">正在打造島嶼星空…</div>
     <div class="pins" id="pins"></div>
-    <svg class="map flat-map" id="map" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="寶島群島地圖，18 個關卡地點" hidden></svg>
-    <div class="hud hud-title glass"><div class="eyebrow">3D Social Adventure</div><h2>寶島群島</h2></div>
+    <svg class="map flat-map" id="map" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="群島地圖，18 個關卡地點" hidden></svg>
+    <div class="hud hud-title glass"><div class="eyebrow" id="hudEyebrow">3D Social Adventure</div><h2 id="hudTitle">島嶼星空</h2></div>
+    <div class="hud hud-region glass" id="regionCard" hidden role="region" aria-live="polite" aria-label="群島介紹"></div>
     <div class="hud hud-ctrl glass" role="group" aria-label="視角控制" id="hudCtrl">
       <button class="btn btn-ghost btn-icon btn-sm" data-act="rot-l" aria-label="向左旋轉" data-3d><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v4h4"/></svg></button>
       <button class="btn btn-ghost btn-icon btn-sm" data-act="zoom-out" aria-label="拉遠" data-3d>−</button>
       <output id="zoomOut" data-3d>100%</output>
       <button class="btn btn-ghost btn-icon btn-sm" data-act="zoom-in" aria-label="拉近" data-3d>＋</button>
       <button class="btn btn-ghost btn-icon btn-sm" data-act="rot-r" aria-label="向右旋轉" data-3d><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/></svg></button>
-      <button class="btn btn-quiet btn-sm" data-act="zoom-fit" data-3d>全島</button>
+      <button class="btn btn-quiet btn-sm" data-act="zoom-fit" data-3d>我的群島</button><button class="btn btn-quiet btn-sm" data-act="world-fit" data-3d>全世界</button>
     </div>
-    <p class="hud hud-hint glass" id="hudHint">拖曳旋轉・滾輪或雙指縮放・點選地點進入關卡</p>
+    <p class="hud hud-hint glass" id="hudHint">拖曳旋轉・滾輪縮放・點選地點進入關卡・「全世界」看整片島嶼星空</p>
   </section>
   <aside class="panel logbook" id="logbook" aria-label="冒險日誌"></aside>
 </main>
@@ -572,8 +601,8 @@ details.lvd summary{cursor:pointer;display:flex;gap:12px;align-items:center;flex
   <div class="sheet invite">
     <div class="invite-art" id="inviteArt"></div>
     <div class="eyebrow">冒險邀請</div>
-    <h1 id="inviteTitle">歡迎來到寶島群島</h1>
-    <p>傳說，寶島群島各處藏著 18 枚珍貴的紀念郵票，每一枚都由一道社會謎題守護。黑熊嚮導邀請你踏上旅程：先選好你的社會課本（康軒、翰林、南一）和學期，群島就會變成你課本裡的世界。每收集一枚郵票，群島中央的寶島燈塔就會更亮一點；集滿 18 枚郵票後，還能領取專屬的冒險證書。</p>
+    <h1 id="inviteTitle">歡迎來到島嶼星空</h1>
+    <p>傳說，在島嶼星空下的海面上，有六座課本群島：康軒、翰林、南一的五上和六上，各自依照課本內容長成不同的模樣，每座群島都藏著 18 枚珍貴的紀念郵票，每一枚都由一道社會謎題守護。黑熊嚮導邀請你踏上旅程：先選好你的社會課本和學期，就從你的課本群島出發。每收集一枚郵票，群島中央的寶島燈塔就會更亮一點；集滿 18 枚郵票後，還能領取專屬的冒險證書。</p>
     <p class="quote">「勇敢的冒險者，準備好加入島嶼小公民探險隊了嗎？選好你的角色，我們就出發！」</p>
     <div class="row" style="justify-content:center">
       <button class="btn btn-ghost" data-act="music"><span aria-hidden="true">♪</span> <span class="music-word">開啟冒險音樂</span></button>
@@ -1598,12 +1627,187 @@ for(const V of Object.values(VERSIONS)){V.label=V.pub+V.sem;V.long=`${V.pub}版�
 function verOf(pub,sem){return Object.values(VERSIONS).find(V=>V.pub===pub&&V.sem===sem)||null}
 const VER_LIST=VER_SEMS.flatMap(s=>VER_PUBS.map(p=>verOf(p,s))).filter(Boolean);
 let VER=null,ZONES,LEVELS,LV,BONUS,TOTAL_Q;
-function useVersion(id){VER=VERSIONS[id]||VERSIONS.h6;ZONES=VER.zones;LEVELS=VER.levels;LV=VER.LV;BONUS=VER.bonus;TOTAL_Q=VER.total;
+function useVersion(id){VER=VERSIONS[id]||VERSIONS.h6;ZONES=VER.zones;LEVELS=VER.levels;LV=VER.LV;BONUS=VER.bonus;TOTAL_Q=VER.total;{const G=layoutOf(VER.id);MAP_NODES=G.nodes;ISLANDS=G.zones;LIGHTHOUSE=G.lh}
   const bs=document.getElementById("brandSub");if(bs)bs.textContent=VER.long;const hv=document.getElementById("helpVer");if(hv)hv.textContent=VER.pub+"版"+VER.sem+"社會";const hn=document.getElementById("helpNote");if(hn)hn.textContent=VER.note}
 const LIT_START=5;
-const MAP_NODES=[[175,470],[285,420],[170,345],[280,265],[195,180],[430,195],[495,130],[565,200],[620,125],[770,175],[870,220],[775,300],[875,365],[790,430],[670,515],[585,465],[500,545],[410,500]];
-const ISLANDS=[{cx:205,cy:320,rx:158,ry:232,seed:1.3,lx:205,ly:68},{cx:520,cy:168,rx:142,ry:106,seed:2.1,lx:520,ly:46},{cx:815,cy:302,rx:150,ry:204,seed:3.7,lx:815,ly:80},{cx:530,cy:520,rx:178,ry:96,seed:4.4,lx:530,ly:410}];
-const LIGHTHOUSE=[605,335];
+let MAP_NODES=[],ISLANDS=[],LIGHTHOUSE=[500,320];
+/* ======================= 世界：六個課本群島 ======================= */
+/* 每個版本一片海域（地圖座標 1000×640，1 世界單位 = 45 地圖單位） */
+const WORLD_ORDER=["k5","h5","n5","k6","h6","n6"];
+const REGION_POS={k5:[-26.5,-9.7],h5:[0,-10.3],n5:[26.5,-9.5],k6:[-26.5,9.9],h6:[0,10.5],n6:[26.5,9.7]};
+const WORLD_BOX={x0:-39,x1:39,z0:-18.5,z1:19};
+/* 島嶼形狀：
+   blob 圓潤島｜bay 港灣（缺口朝 ba 方向）｜leaf 狹長山脈島（尖端沿長軸）｜square 方正城市島｜oct 晶片八角島
+   coin 金幣圓島｜heart 愛心島｜arc 彎月沙洲（cx,cy 為弧心）｜hole 潟湖（島中央的水域）
+   feat：peaks 山峰群、ridge 山脈、mesa 考古階地、lake 埤塘湖泊、river 河流／圳道、wall 防波堤、piers 晶片接腳／碼頭 */
+const LAYOUTS={
+  k5:{lh:[560,345],z:[
+    {parts:[{f:"bay",cx:190,cy:375,rx:165,ry:222,seed:1.3,ba:.05,bd:.7,bw:.6}],
+     path:[[250,500],[150,530],[82,410],[105,285],[215,205]],
+     feat:[{k:"wall",pts:[[345,318],[352,375]]}]},
+    {parts:[{f:"leaf",cx:468,cy:205,rx:202,ry:112,rot:1.68,seed:2.1,p:.45,tilt:-.18}],
+     path:[[422,92],[402,182],[410,275],[446,362]],
+     feat:[{k:"ridge",pts:[[490,80],[522,170],[515,280]],n:6,r:30,h:1.2}]},
+    {parts:[{f:"blob",cx:805,cy:240,rx:150,ry:170,seed:3.7},{f:"blob",cx:955,cy:455,rx:30,ry:25,seed:5,sat:1},{f:"blob",cx:905,cy:520,rx:20,ry:16,seed:6,sat:1}],
+     path:[[705,152],[800,120],[878,195],[872,300],[790,358]],
+     feat:[{k:"mesa",x:770,y:250,r:50,tiers:3,h:.5}]},
+    {parts:[{f:"arc",cx:598,cy:440,R:186,sq:.62,a0:.2,a1:2.92,W:124,seed:4.4,trim:.36}],
+     path:"arc",feat:[]}
+  ]},
+  h5:{lh:[470,262],z:[
+    {parts:[{f:"blob",cx:190,cy:150,rx:162,ry:122,seed:1.9},{f:"blob",cx:395,cy:70,rx:26,ry:20,seed:2,sat:1}],
+     path:[[300,175],[255,78],[140,70],[72,155],[150,232]],
+     feat:[{k:"mesa",x:200,y:150,r:40,tiers:2,h:.42}]},
+    {chain:{cx:232,cy:290,R:232,sq:.95,a0:2.42,a1:.72,W:120,n:4,gap:.075,seed:2.2},path:"arc",feat:[]},
+    {parts:[{f:"square",cx:590,cy:440,rx:126,ry:118,rot:-.1,sq:3.4,seed:3.3}],
+     path:[[500,455],[550,538],[655,528],[685,420],[612,352]],
+     feat:[{k:"wall",pts:[[520,575],[560,610]]}]},
+    {parts:[{f:"leaf",cx:862,cy:305,rx:272,ry:100,rot:1.62,seed:4.9,p:.5,tilt:.1}],
+     path:[[815,480],[792,375],[798,268],[825,165]],
+     feat:[{k:"ridge",pts:[[905,505],[900,380],[915,250],[885,120]],n:7,r:28,h:1.15},{k:"lake",x:842,y:545,rx:22,ry:15}]}
+  ]},
+  n5:{lh:[515,330],z:[
+    {parts:[{f:"leaf",cx:200,cy:330,rx:258,ry:100,rot:1.66,seed:1.1,p:.55,tilt:.15},{f:"blob",cx:48,cy:250,rx:22,ry:18,seed:3,sat:1},{f:"blob",cx:40,cy:318,rx:17,ry:14,seed:4,sat:1},{f:"blob",cx:62,cy:385,rx:15,ry:13,seed:8,sat:1}],
+     path:[[172,525],[148,425],[142,322],[155,222],[186,125]],
+     feat:[{k:"ridge",pts:[[240,150],[258,260],[260,370],[245,470]],n:6,r:28,h:1.05}]},
+    {parts:[{f:"blob",cx:432,cy:140,rx:102,ry:94,seed:2.5},{f:"blob",cx:655,cy:145,rx:100,ry:92,seed:3.9}],
+     path:[[392,112],[465,182],[618,105],[690,185]],
+     feat:[{k:"bridge",pts:[[526,148],[562,146]]}]},
+    {parts:[{f:"bay",cx:868,cy:360,rx:128,ry:200,seed:2.8,ba:3.14,bd:.36,bw:.42}],
+     path:[[812,205],[905,218],[880,318],[815,410],[870,510]],
+     feat:[{k:"river",pts:[[935,410],[890,385],[855,345],[780,345]],w:16},{k:"lake",x:800,y:285,rx:20,ry:14},{k:"peaks",x:938,y:452,r:34,n:3,h:.85}]},
+    {parts:[{f:"blob",cx:520,cy:516,rx:224,ry:120,seed:4.1,hole:{cx:525,cy:512,rx:94,ry:30,seed:2}}],
+     path:[[715,485],[630,594],[420,598],[328,488]],
+     feat:[]}
+  ]},
+  k6:{lh:[330,335],z:[
+    {parts:[{f:"square",cx:185,cy:160,rx:150,ry:118,rot:.06,sq:4.5,seed:1.2}],
+     path:[[85,108],[180,72],[285,118],[250,215],[125,222]],
+     feat:[]},
+    {parts:[{f:"blob",cx:170,cy:475,rx:132,ry:112,seed:2.6},{f:"blob",cx:45,cy:345,rx:28,ry:22,seed:1,sat:1},{f:"blob",cx:330,cy:580,rx:28,ry:20,seed:2,sat:1},{f:"blob",cx:40,cy:590,rx:22,ry:16,seed:3,sat:1}],
+     path:[[95,410],[208,412],[240,515],[120,540]],
+     feat:[]},
+    {parts:[{f:"bay",cx:535,cy:425,rx:160,ry:150,seed:3.3,ba:-1.57,bd:.45,bw:.42}],
+     path:[[425,350],[430,465],[535,560],[640,465],[648,350]],
+     feat:[{k:"wall",pts:[[478,250],[512,284]]}]},
+    {parts:[{f:"blob",cx:825,cy:170,rx:128,ry:112,seed:4.2},{f:"blob",cx:860,cy:450,rx:122,ry:118,seed:5.3},{f:"square",cx:845,cy:310,rx:30,ry:62,sq:6,seed:1}],
+     path:[[760,160],[880,140],[845,385],[880,510]],
+     feat:[]}
+  ]},
+  h6:{lh:[560,340],z:[
+    {parts:[{f:"bay",cx:195,cy:330,rx:168,ry:236,seed:1.3,ba:0,bd:.62,bw:.55}],
+     path:[[215,535],[105,460],[82,330],[115,200],[220,122]],
+     feat:[{k:"wall",pts:[[360,270],[378,305]]}]},
+    {parts:[{f:"coin",cx:510,cy:150,rx:128,ry:112,teeth:24}],
+     path:[[430,175],[480,88],[585,110],[575,215]],
+     feat:[]},
+    {parts:[{f:"square",cx:825,cy:290,rx:140,ry:178,rot:.05,sq:4,seed:3.7}],
+     path:[[740,165],[860,150],[905,275],[865,405],[750,390]],
+     feat:[]},
+    {parts:[{f:"oct",cx:512,cy:512,rx:162,ry:100,k:1.42}],
+     path:[[640,515],[548,565],[430,548],[405,468]],
+     feat:[{k:"piers",n:18}]}
+  ]},
+  n6:{lh:[410,330],z:[
+    {parts:[{f:"square",cx:180,cy:315,rx:140,ry:205,rot:-.04,sq:5,seed:1.6}],
+     path:[[120,490],[105,390],[115,282],[148,178],[248,140]],
+     feat:[{k:"river",pts:[[285,480],[225,410],[222,300],[290,235]],w:16,canal:1}]},
+    {parts:[{f:"square",cx:535,cy:160,rx:118,ry:118,rot:.785,sq:2.6,seed:2.2}],
+     path:[[445,140],[535,75],[625,155],[535,238]],
+     feat:[]},
+    {parts:[{f:"bay",cx:560,cy:490,rx:180,ry:115,seed:2.9,ba:-1.2,bd:.4,bw:.4}],
+     path:[[430,505],[500,425],[585,555],[665,525],[678,440]],
+     feat:[{k:"wall",pts:[[612,348],[662,340]]}]},
+    {parts:[{f:"heart",cx:845,cy:300,rx:150,ry:168}],
+     path:[[772,218],[902,208],[880,330],[842,415]],
+     feat:[]}
+  ]}
+};
+
+const MU=45;
+function hrm(t,s){return .075*Math.sin(3*t+s)+.05*Math.sin(5*t+s*1.7)+.03*Math.sin(8*t+s*2.3)}
+function rotPts(pts,P){const a=P.rot||0,ca=Math.cos(a),sa=Math.sin(a);return pts.map(([u,v])=>{const x=u*P.rx,y=v*P.ry;return [P.cx+x*ca-y*sa,P.cy+x*sa+y*ca]})}
+function partPts(P){
+  const N=P.f==="arc"?0:(P.n||72),s=P.seed||1,out=[];
+  if(P.f==="arc"){const n=40,pts=[];const R=P.R,sq=P.sq||1;
+    for(let i=0;i<=n;i++){const k=i/n,a=P.a0+(P.a1-P.a0)*k;const w=P.W*.5*Math.pow(Math.sin(Math.PI*Math.min(1,Math.max(0,(k*1.06-.03)))),.55)+6;const r=R+w*(1+.06*Math.sin(a*7+s));pts.push([P.cx+Math.cos(a)*r,P.cy+Math.sin(a)*r*sq])}
+    for(let i=n;i>=0;i--){const k=i/n,a=P.a0+(P.a1-P.a0)*k;const w=P.W*.5*Math.pow(Math.sin(Math.PI*Math.min(1,Math.max(0,(k*1.06-.03)))),.55)+6;const r=R-w;pts.push([P.cx+Math.cos(a)*r,P.cy+Math.sin(a)*r*sq])}
+    const dd=[];pts.forEach((p,i)=>{const q=pts[(i+1)%pts.length];if(Math.hypot(p[0]-q[0],p[1]-q[1])>.5)dd.push(p)});return dd}
+  const uv=[];
+  for(let i=0;i<N;i++){const t=i/N*Math.PI*2,c=Math.cos(t),sn=Math.sin(t);let u,v;
+    if(P.f==="leaf"){const p=P.p==null?.55:P.p;const k=1+hrm(t,s)*.7;u=c*k;v=sn*Math.pow(Math.abs(sn),p)*(1+(P.tilt||0)*c)*k*1.15}
+    else if(P.f==="bay"){const r=1+hrm(t,s);const d=Math.atan2(Math.sin(t-P.ba),Math.cos(t-P.ba));const r2=r*(1-P.bd*Math.exp(-((d/P.bw)**2)));u=c*r2;v=sn*r2}
+    else if(P.f==="square"){const e=2/(P.sq||4);const r=1+hrm(t,s)*.35;u=Math.sign(c)*Math.pow(Math.abs(c),e)*r;v=Math.sign(sn)*Math.pow(Math.abs(sn),e)*r}
+    else if(P.f==="oct"){const r=Math.min(1/Math.max(Math.abs(c),Math.abs(sn)),(P.k||1.4)/(Math.abs(c)+Math.abs(sn)));u=c*r;v=sn*r}
+    else if(P.f==="coin"){const r=1+.025*Math.sin((P.teeth||22)*t);u=c*r;v=sn*r}
+    else if(P.f==="heart"){const hx=Math.pow(sn,3),hy=(13*c-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/16;u=.8*hx+.2*sn;v=-(.8*(hy+.18)/1.0+.2*c)}
+    else{const r=1+hrm(t,s);u=c*r;v=sn*r}
+    uv.push([u,v])}
+  if(P.f==="heart"){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;uv.forEach(([u,v])=>{x0=Math.min(x0,u);x1=Math.max(x1,u);y0=Math.min(y0,v);y1=Math.max(y1,v)});uv.forEach(p=>{p[0]=(p[0]-(x0+x1)/2)/((x1-x0)/2);p[1]=(p[1]-(y0+y1)/2)/((y1-y0)/2)})}
+  return rotPts(uv,P);
+}
+function polyArea(p){let a=0;for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length];a+=p[i][0]*q[1]-q[0]*p[i][1]}return a/2}
+function ccw(p){return polyArea(p)<0?p.slice().reverse():p}
+/* 法線外推：d>0 往外 */
+function offsetPoly(p0,d){const p=ccw(p0),n=p.length;return p.map((a,i)=>{const b=p[(i-1+n)%n],c=p[(i+1)%n];let nx=c[1]-b[1],ny=-(c[0]-b[0]);const L=Math.hypot(nx,ny)||1;return [a[0]+nx/L*d,a[1]+ny/L*d]})}
+function pip(p,x,y){let ins=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])ins=!ins}return ins}
+function segD(x,y,a,b){const dx=b[0]-a[0],dy=b[1]-a[1];const L=dx*dx+dy*dy||1;let t=((x-a[0])*dx+(y-a[1])*dy)/L;t=Math.max(0,Math.min(1,t));return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)}
+function edgeD(p,x,y,closed){let m=1e9;const n=p.length;for(let i=0;i<(closed===false?n-1:n);i++)m=Math.min(m,segD(x,y,p[i],p[(i+1)%n]));return m}
+function catmull(pts,steps){if(pts.length<2)return pts.slice();const out=[];for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;for(let s=0;s<steps;s++){const t=s/steps,t2=t*t,t3=t2*t;out.push([0,1].map(k=>.5*((2*p1[k])+(-p0[k]+p2[k])*t+(2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t2+(-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t3)))}}out.push(pts[pts.length-1].slice());return out}
+function spaced(pts,k){const c=catmull(pts,24);const L=[0];for(let i=1;i<c.length;i++)L.push(L[i-1]+Math.hypot(c[i][0]-c[i-1][0],c[i][1]-c[i-1][1]));const tot=L[L.length-1];const out=[];let j=0;for(let m=0;m<k;m++){const s=k===1?0:tot*m/(k-1);while(j<c.length-2&&L[j+1]<s)j++;const u=(s-L[j])/((L[j+1]-L[j])||1);out.push([c[j][0]+(c[j+1][0]-c[j][0])*u,c[j][1]+(c[j+1][1]-c[j][1])*u])}return out}
+function featHit(f,x,y,pad){
+  if(f.k==="peaks"||f.k==="mesa")return Math.hypot(x-f.x,y-f.y)<f.r+pad;
+  if(f.k==="lake")return ((x-f.x)/(f.rx+pad))**2+((y-f.y)/(f.ry+pad))**2<1;
+  if(f.k==="ridge")return edgeD(f.pts,x,y,false)<f.r+pad;
+  if(f.k==="river")return edgeD(f.pts,x,y,false)<f.w/2+pad*.6;
+  return false}
+function rnd2(seed){let s=seed>>>0||1;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+const ZSPLIT_N=[5,4,5,4];
+const GEO_CACHE={};
+function layoutOf(id){
+  if(GEO_CACHE[id])return GEO_CACHE[id];
+  const L=LAYOUTS[id]||LAYOUTS.h6;const [ox,oz]=REGION_POS[id]||[0,0];
+  L.z.forEach(Z=>{if(Z.chain&&!Z.parts){const C=Z.chain;Z.parts=[];const span=(C.a1-C.a0)/C.n;for(let k=0;k<C.n;k++){const a0=C.a0+span*k+(k?span*C.gap:0)*Math.sign(span)/Math.sign(span),a1=C.a0+span*(k+1)-(k<C.n-1?span*C.gap:0);Z.parts.push({f:"arc",cx:C.cx,cy:C.cy,R:C.R,sq:C.sq,a0,a1,W:C.W,seed:C.seed+k,piece:1})}}});
+  const zones=L.z.map((Z,zi)=>{const parts=Z.parts.map(P=>{const pts=ccw(partPts(P));const hole=P.hole?ccw(partPts(Object.assign({f:"blob"},P.hole))):null;return{P,pts,hole,sat:!!P.sat}});return{parts,feat:Z.feat||[],path:Z.path,chain:Z.chain,zi}});
+  const inZone=(zi,x,y,inset)=>{const Z=zones[zi];for(const pt of Z.parts){if(!pip(pt.pts,x,y))continue;if(pt.hole&&pip(pt.hole,x,y))continue;let d=edgeD(pt.pts,x,y);if(pt.hole)d=Math.min(d,edgeD(pt.hole,x,y));if(d>=inset)return true}return false};
+  const zoneAt=(x,y,inset)=>{for(let i=0;i<zones.length;i++)if(inZone(i,x,y,inset))return i;return -1};
+  const featAt=(x,y,pad)=>zones.some(Z=>Z.feat.some(f=>featHit(f,x,y,pad)));
+  const nodes=[];zones.forEach((Z,zi)=>{let path=Z.path;if(path==="arc"){const P=Z.chain?Object.assign({},Z.chain,{trim:Math.abs(Z.chain.a1-Z.chain.a0)/Z.chain.n/2}):Z.parts[0].P;const m=P.trim==null?.16:P.trim;path=[];for(let k=0;k<=12;k++){const sg=Math.sign(P.a1-P.a0)||1;const a=P.a0+sg*m+(P.a1-P.a0-2*sg*m)*k/12;path.push([P.cx+Math.cos(a)*P.R,P.cy+Math.sin(a)*P.R*(P.sq||1)])}if(P.rev)path.reverse()}Z.nodes=spaced(path,ZSPLIT_N[zi]);nodes.push(...Z.nodes)});
+  /* 地標位置（世界單位候選，換成地圖單位） */
+  const cand=[[0,-.98],[-.82,-.62],[.82,-.62],[-1,0],[1,0],[0,-1.35],[-.7,.6],[.7,.6],[0,.95],[-1.2,-.3],[1.2,-.3]];
+  const props=[];const warn=[];
+  nodes.forEach((n,i)=>{const zi=zoneAt(n[0],n[1],0);let pos=null;
+    for(const [dx,dz] of cand){const x=n[0]+dx*MU,y=n[1]+dz*MU;if(zi<0||!inZone(zi,x,y,.36*MU))continue;if(featAt(x,y,.3*MU))continue;if(nodes.some((m,j)=>j!==i&&Math.hypot(m[0]-x,m[1]-y)<1.0*MU))continue;if(props.some(p=>Math.hypot(p[0]-x,p[1]-y)<1.08*MU))continue;pos=[x,y];break}
+    if(!pos){warn.push(`${id} prop ${i+1} fallback`);let bd=-1e9;for(const [dx,dz] of cand.concat([[0,-.8],[-.8,0],[.8,0],[0,.8]])){const x=n[0]+dx*MU,y=n[1]+dz*MU;if(zi<0||!inZone(zi,x,y,.12*MU))continue;let m=1e9;nodes.forEach((q,j)=>{if(j!==i)m=Math.min(m,Math.hypot(q[0]-x,q[1]-y))});props.forEach(q=>{m=Math.min(m,Math.hypot(q[0]-x,q[1]-y)*1.1)});if(featAt(x,y,.2*MU))m*=.5;if(m>bd){bd=m;pos=[x,y]}}if(!pos)pos=[n[0],n[1]-.7*MU]}props.push(pos)});
+  /* 檢查 */
+  nodes.forEach((n,i)=>{const zi=zoneAt(n[0],n[1],.5*MU);if(zi<0)warn.push(`${id} node ${i+1} near coast/outside`);if(featAt(n[0],n[1],.35*MU))warn.push(`${id} node ${i+1} on feature`);nodes.forEach((m,j)=>{if(j>i&&Math.hypot(m[0]-n[0],m[1]-n[1])<2.05*MU)warn.push(`${id} nodes ${i+1}&${j+1} close ${(Math.hypot(m[0]-n[0],m[1]-n[1])/MU).toFixed(2)}`)})});
+  if(zoneAt(L.lh[0],L.lh[1],-1.4*MU)>=0)warn.push(`${id} lighthouse touches island`);
+  for(let a=0;a<zones.length;a++)for(let b=a+1;b<zones.length;b++)for(const pa of zones[a].parts)for(const pb of zones[b].parts){let m=1e9;pa.pts.forEach(p=>{m=Math.min(m,edgeD(pb.pts,p[0],p[1]))});if(m<34)warn.push(`${id} islands ${a}/${b} gap ${m.toFixed(0)}`)}
+  /* 島名標籤：放在海上、避開關卡標籤與其他島名 */
+  const VV=typeof VERSIONS!=="undefined"&&VERSIONS[id];
+  /* 以預設視角估算畫面上的佔位（地圖單位；畫面縱向約壓縮為 0.68） */
+  const pinBox=nodes.map((n,i)=>{const nm=VV?VV.levels[i].name:"四個字名";const w=(nm.length*13+52)/1.07/2;return[n[0]-w,n[1]-134,n[0]+w,n[1]-76]});
+  const tagW=zi=>{const nm=VV?VV.zones[zi].name:"四個字名";return (nm.length*24+12)/1.07};
+  const placed=[];const boxGap=(a,b)=>Math.hypot(Math.max(0,a[0]-b[2],b[0]-a[2]),Math.max(0,a[1]-b[3],b[1]-a[3]));
+  const tags=zones.map((Z,zi)=>{const main=Z.parts[0];let best=null,bs=-1e9;const w=tagW(zi);
+    const cands=[];[46,80,115].forEach(o=>offsetPoly(main.pts,o).forEach((c,k)=>{if(k%2===0)cands.push(c)}));{let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;main.pts.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});for(let gx=x0;gx<=x1;gx+=18)for(let gy=y0;gy<=y1+60;gy+=14){if(inZone(zi,gx,gy-40,10))cands.push([gx,gy])}}
+    for(const [x,y] of cands){if(x-w/2<20||x+w/2>980||y-80<-30||y>650)continue;const box=[x-w/2,y-80,x+w/2,y-8];
+      if(Math.hypot(x-L.lh[0],y-40-L.lh[1])<80)continue;
+      let m=1e9;pinBox.forEach(b=>{m=Math.min(m,boxGap(box,b))});nodes.forEach(n=>{m=Math.min(m,boxGap(box,[n[0]-24,n[1]-30,n[0]+24,n[1]+14])*1.2)});props.forEach(n=>{m=Math.min(m,boxGap(box,[n[0]-20,n[1]-40,n[0]+20,n[1]+12])*1.6)});let t=1e9;placed.forEach(b=>{t=Math.min(t,boxGap(box,b))});
+      let pen=0;const own=zoneAt(x,y-40,-6);if(own>=0&&own!==zi)pen+=70;Z.feat.forEach(f=>{if(featHit(f,x,y-40,10))pen+=25});[[box[0],box[1]],[box[2],box[1]],[box[0],box[3]],[box[2],box[3]]].forEach(([qx,qy])=>{const o=zoneAt(qx,qy,-6);if(o>=0&&o!==zi)pen+=18});
+      const dOut=inZone(zi,x,y-40,0)?0:edgeD(main.pts,x,y-40);const sc=Math.min(m,40)*1.6+Math.min(t,50)-pen-dOut*.7;if(sc>bs){bs=sc;best=[x,y,box]}}
+    if(!best)best=[main.P.cx,main.P.cy-(main.P.ry||80)-40,[0,0,0,0]];placed.push(best[2]);if(bs<20)warn.push(`${id} tag ${zi} cramped ${bs.toFixed(0)}`);return [best[0],best[1]]});
+  /* 樹木 */
+  const R=rnd2(id.charCodeAt(0)*31+id.charCodeAt(1)*7);const trees=[];
+  zones.forEach((Z,zi)=>{const want=[13,9,11,10][zi];let n=0,guard=0;const bb=Z.parts.flatMap(p=>p.pts);let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;bb.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});
+    while(n<want&&guard++<1500){const x=x0+R()*(x1-x0),y=y0+R()*(y1-y0);if(!inZone(zi,x,y,.38*MU))continue;if(featAt(x,y,.18*MU))continue;if(nodes.some(m=>Math.hypot(m[0]-x,m[1]-y)<.82*MU))continue;if(props.some(p=>Math.hypot(p[0]-x,p[1]-y)<.78*MU))continue;if(trees.some(t=>Math.hypot(t[0]-x,t[1]-y)<.42*MU))continue;trees.push([x,y,zi,.75+R()*.55]);n++}
+    Z.parts.forEach((pt,pi)=>{if(!pt.sat)return;for(let k=0;k<2;k++){const x=pt.P.cx+(R()-.5)*pt.P.rx*.6,y=pt.P.cy+(R()-.5)*pt.P.ry*.6;if(trees.some(t=>Math.hypot(t[0]-x,t[1]-y)<.3*MU))continue;trees.push([x,y,zi,.55+R()*.3])}})});
+  pinBox.forEach((a,i)=>pinBox.forEach((b,j)=>{if(j>i&&boxGap(a,b)===0){const ov=Math.min(a[2],b[2])-Math.max(a[0],b[0]);const oh=Math.min(a[3],b[3])-Math.max(a[1],b[1]);if(ov>8&&oh>8)warn.push(`${id} pins ${i+1}&${j+1} overlap ${ov.toFixed(0)}x${oh.toFixed(0)}`)}}));
+  const g={id,ox,oz,L,zones,nodes,props,tags,trees,lh:L.lh,warn,pinBox,inZone,zoneAt,featAt,
+    wx:x=>(x-500)/MU+ox,wz:y=>(y-320)/MU+oz,mx:wx=>(wx-ox)*MU+500,my:wz=>(wz-oz)*MU+320};
+  GEO_CACHE[id]=g;return g;
+}
+
 
 /* ======================= 圖示 ======================= */
 const ICONS={
@@ -1913,8 +2117,6 @@ const PAL={
 const ZONE3=[0xC07A1C,0xB74B7C,0x4060B8,0x168197];
 const CAM={az:0,pol:.92,r:24,tx:0,tz:.3,tw:null};
 function isDark(){const t=document.documentElement.dataset.theme;if(t==="dark")return true;if(t==="light")return false;return matchMedia("(prefers-color-scheme: dark)").matches}
-function islandAt(wx,wz,scale){const mx=wx*45+500,my=wz*45+320;for(let i=0;i<ISLANDS.length;i++){const I=ISLANDS[i];const dx=(mx-I.cx)/I.rx,dy=(my-I.cy)/I.ry;const th=Math.atan2(dy,dx);const r=1+.075*Math.sin(3*th+I.seed)+.05*Math.sin(5*th+I.seed*1.7)+.03*Math.sin(8*th+I.seed*2.3);if(Math.hypot(dx,dy)<r*scale)return i}return -1}
-function shapeFrom(I,s){const pts=blobPts(I,s);const sh=new THREE.Shape();pts.forEach((p,i)=>{const x=WX(p[0]),z=WZ(p[1]);i?sh.lineTo(x,-z):sh.moveTo(x,-z)});sh.closePath();return sh}
 function extr(shape,depth,bevel){const g=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:!!bevel,bevelThickness:bevel||0,bevelSize:bevel||0,bevelSegments:3,curveSegments:4});g.rotateX(-Math.PI/2);return g}
 const GROUNDS=["paddy","meadow","city","circuit","forest","sand","earth","cobble"];
 function groundTex(style){const z=Math.max(0,GROUNDS.indexOf(style));const R=rnd(11+z*7);return canvasTex(256,256,(g,w,h)=>{
@@ -1934,7 +2136,7 @@ function lampMat(c){const m=new THREE.MeshStandardMaterial({color:c,emissive:c,e
 /* 18 個關卡地標 */
 const GOLDM=()=>M(0xE7B43A,{metalness:.6,roughness:.3});
 function treeAt(g,x,z,s,c){T3.cyl(g,.03*s,.04*s,.2*s,0x7A5636,x,.1*s,z,8);T3.cone(g,.18*s,.38*s,M(c||0x5E9E4E,{flatShading:true}),x,.38*s,z,7)}
-function smoke(g,x,y,z,n){const ps=[];for(let k=0;k<n;k++){const m=new THREE.MeshStandardMaterial({color:0xE8ECEF,transparent:true,opacity:.7,roughness:1,flatShading:true});const s=keep(mk(geo("puff",()=>new THREE.IcosahedronGeometry(.07,0)),m,x,y,z,g));s.castShadow=false;ps.push({s,m,ph:k/n})}
+function smoke(g,x,y,z,n){if(W3.static)return;const ps=[];for(let k=0;k<n;k++){const m=new THREE.MeshStandardMaterial({color:0xE8ECEF,transparent:true,opacity:.7,roughness:1,flatShading:true});const s=keep(mk(geo("puff",()=>new THREE.IcosahedronGeometry(.07,0)),m,x,y,z,g));s.castShadow=false;ps.push({s,m,ph:k/n})}
   W3.anims.push(t=>{for(const p of ps){const u=(t*.22+p.ph)%1;p.s.position.y=y+u*.55;p.s.position.x=x+Math.sin(u*5+p.ph*6)*.05;const sc=.6+u*1.6;p.s.scale.set(sc,sc,sc);p.m.opacity=.75*(1-u)}})}
 /* ---- 新增地標零件 ---- */
 const TRANS=(c,o)=>new THREE.MeshStandardMaterial({color:c,transparent:true,opacity:o==null?.8:o,roughness:.15});
@@ -2298,56 +2500,138 @@ function makeBoat(c){
 }
 function makeCloud(seed){const g=new THREE.Group();const R=rnd(seed);const m=new THREE.MeshStandardMaterial({color:0xFFFFFF,roughness:1,flatShading:true,transparent:true,opacity:.92});for(let k=0;k<5;k++){const c=new THREE.Mesh(geo("cl",()=>new THREE.IcosahedronGeometry(.5,0)),m);c.position.set((k-2)*.42+R()*.2,R()*.25,R()*.3-.15);const s=.6+R()*.6;c.scale.set(s,s*.8,s);g.add(c)}return g}
 
+/* ---- 島嶼星空：幾何工具 ---- */
+const REG_COLOR={"康軒":"#D9822B","翰林":"#3B78D0","南一":"#2E9A66"};
+function shapeFromPts(G,pts,hole,d){const P=d?offsetPoly(pts,d):pts;const sh=new THREE.Shape();P.forEach((p,i)=>{const x=G.wx(p[0]),z=G.wz(p[1]);i?sh.lineTo(x,-z):sh.moveTo(x,-z)});sh.closePath();
+  if(hole){const H=offsetPoly(hole,-d);const hp=new THREE.Path();H.forEach((p,i)=>{const x=G.wx(p[0]),z=G.wz(p[1]);i?hp.lineTo(x,-z):hp.moveTo(x,-z)});hp.closePath();sh.holes.push(hp)}return sh}
+function mergeGeos(list,byMat){
+  const geos=list.map(g=>g.index?g.toNonIndexed():g);let n=0;geos.forEach(g=>{n+=g.attributes.position.count});
+  const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=new Float32Array(n*2);const out=new THREE.BufferGeometry();let o=0;
+  const copy=(g,s,c)=>{pos.set(g.attributes.position.array.subarray(s*3,(s+c)*3),o*3);nor.set(g.attributes.normal.array.subarray(s*3,(s+c)*3),o*3);if(g.attributes.uv)uv.set(g.attributes.uv.array.subarray(s*2,(s+c)*2),o*2);o+=c};
+  if(byMat){for(const mi of [0,1]){const st=o;geos.forEach(g=>{const cnt=g.attributes.position.count;const gr=g.groups.length?g.groups:[{start:0,count:cnt,materialIndex:0}];gr.forEach(q=>{if((q.materialIndex||0)===mi)copy(g,q.start,Math.min(q.count,cnt-q.start))})});if(o>st)out.addGroup(st,o-st,mi)}}
+  else geos.forEach(g=>copy(g,0,g.attributes.position.count));
+  out.setAttribute("position",new THREE.BufferAttribute(pos.subarray(0,o*3),3));out.setAttribute("normal",new THREE.BufferAttribute(nor.subarray(0,o*3),3));out.setAttribute("uv",new THREE.BufferAttribute(uv.subarray(0,o*2),2));
+  list.forEach(g=>g.dispose());geos.forEach(g=>g.dispose());out.computeBoundingSphere();out.computeBoundingBox();return out}
+function groundMat(style){const k=GROUNDS.includes(style)?style:"meadow";return W3.mat.ground[k]||(W3.mat.ground[k]=new THREE.MeshStandardMaterial({map:groundTex(k),roughness:.92}))}
+function islandAt(wx,wz,inset){const G=layoutOf(VER.id);return G.zoneAt(G.mx(wx),G.my(wz),(inset||0)*MU)}
+
+/* ---- 地形特色：山脈、考古階地、湖泊、河流與圳道、防波堤、橋、晶片接腳 ---- */
+function ribbon(G,pts,w,y,mat,parent){const c=catmull(pts,10);const pos=[];const half=w/2/MU;
+  const side=c.map((p,i)=>{const a=c[Math.max(0,i-1)],b=c[Math.min(c.length-1,i+1)];let dx=b[0]-a[0],dy=b[1]-a[1];const L=Math.hypot(dx,dy)||1;return[-dy/L,dx/L]});
+  for(let i=0;i<c.length-1;i++){const P=[i,i+1].map(k=>{const x=G.wx(c[k][0]),z=G.wz(c[k][1]);return[[x+side[k][0]*half,z+side[k][1]*half],[x-side[k][0]*half,z-side[k][1]*half]]});
+    const [[a1,a2],[b1,b2]]=P;pos.push(a1[0],y,a1[1],b1[0],y,b1[1],a2[0],y,a2[1],a2[0],y,a2[1],b1[0],y,b1[1],b2[0],y,b2[1])}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();
+  const n=g.attributes.normal;for(let i=0;i<n.count;i++){if(n.getY(i)<0){n.setXYZ(i,0,1,0)}}
+  const m=new THREE.Mesh(g,mat);m.material.side=THREE.DoubleSide;m.receiveShadow=true;parent.add(m);return m}
+function buildFeatures(G,g){
+  const Y=LAND_Y;
+  G.zones.forEach((Z,zi)=>Z.feat.forEach((f,fi)=>{const R=rnd(97+zi*13+fi*7+G.id.charCodeAt(0));
+    if(f.k==="ridge"||f.k==="peaks"){const n=f.n||3;const pts=f.k==="ridge"?spaced(f.pts,n):Array.from({length:n},(_,k)=>{const a=k/n*6.283+R()*.6;return[f.x+Math.cos(a)*f.r*.5,f.y+Math.sin(a)*f.r*.42]});
+      pts.forEach((p,k)=>{const mid=f.k==="ridge"?.62+.5*Math.sin(Math.PI*(k+.5)/n):1;const h=(f.h||1)*mid*(.78+R()*.36);const rr=(f.r/MU)*(1.05+R()*.35);const x=G.wx(p[0]),z=G.wz(p[1]),ry=R()*3;
+        const m=mk(geo("mtn",()=>new THREE.ConeGeometry(1,1,6,1)),M(0x7A9361,{flatShading:true,roughness:.95}),x,Y+h/2-.03,z,g);m.scale.set(rr,h,rr);m.rotation.y=ry;
+        const m2=mk(geo("mtn",()=>new THREE.ConeGeometry(1,1,6,1)),M(0x8C7A5C,{flatShading:true,roughness:.95}),x+rr*.15,Y+h*.18-.03,z+rr*.1,g);m2.scale.set(rr*1.12,h*.36,rr*1.12);m2.rotation.y=ry+.5;
+        if(h>.9){const c=mk(geo("mtn",()=>new THREE.ConeGeometry(1,1,6,1)),M(0xF3F5F7,{flatShading:true,roughness:.8}),x,Y-.03+h-h*.15+.005,z,g);c.scale.set(rr*.31,h*.3,rr*.31);c.rotation.y=ry}});
+      for(let k=0;k<n;k++){const p=pts[k];const rk=mk(geo("rock",()=>new THREE.DodecahedronGeometry(.22,0)),M(0x857C6E,{flatShading:true,roughness:.95}),G.wx(p[0])+(R()-.5)*.9,Y+.04,G.wz(p[1])+(R()-.5)*.9,g);rk.scale.set(.6,.4,.6)}}
+    else if(f.k==="mesa"){const t=f.tiers||3,cols=[0xB98A5A,0xD4A970,0xA27449,0xC99B62];let y=Y-.02;for(let k=0;k<t;k++){const r=(f.r/MU)*(1-k*.27),h=(f.h||.5)/t;T3.cyl(g,r*.94,r,h,M(cols[k%4],{flatShading:true,roughness:.95}),G.wx(f.x),y+h/2,G.wz(f.y),10);y+=h}
+      const top=(f.r/MU)*(1-(t-1)*.27)*.6;T3.box(g,top*1.2,.02,top*1.2,0x6E5238,G.wx(f.x),y+.01,G.wz(f.y));for(const [dx,dz] of [[-1,-1],[1,-1],[-1,1],[1,1]])T3.cyl(g,.012,.012,.12,0xF2EFE6,G.wx(f.x)+dx*top*.6,y+.06,G.wz(f.y)+dz*top*.6,6)}
+    else if(f.k==="lake"){const rim=mk(geo("disc28",()=>{const c=new THREE.CircleGeometry(1,28);c.rotateX(-Math.PI/2);return c}),M(0xD9C48E,{roughness:.95}),G.wx(f.x),Y+.004,G.wz(f.y),g);rim.scale.set((f.rx+6)/MU,1,(f.ry+6)/MU);rim.castShadow=false;
+      const w=mk(geo("disc28",()=>{const c=new THREE.CircleGeometry(1,28);c.rotateX(-Math.PI/2);return c}),W3.mat.lake,G.wx(f.x),Y+.012,G.wz(f.y),g);w.scale.set(f.rx/MU,1,f.ry/MU);w.castShadow=false;keep(w);
+      for(let k=0;k<5;k++){const a=R()*6.28;T3.cyl(g,.01,.012,.16,0x6E8F4A,G.wx(f.x)+Math.cos(a)*(f.rx+3)/MU,Y+.08,G.wz(f.y)+Math.sin(a)*(f.ry+3)/MU,5)}}
+    else if(f.k==="river"){if(f.canal)keep(ribbon(G,f.pts,f.w+8,Y+.006,M(0xB9B3A6,{roughness:.9}),g));const rv=ribbon(G,f.pts,f.w,Y+.014,W3.mat.lake,g);keep(rv)}
+    else if(f.k==="wall"){const [a,b]=f.pts;const x1=G.wx(a[0]),z1=G.wz(a[1]),x2=G.wx(b[0]),z2=G.wz(b[1]);const L=Math.hypot(x2-x1,z2-z1);const n=Math.max(2,Math.round(L/.34));
+      for(let k=0;k<n;k++){const u=(k+.5)/n;const bl=mk(geo("tetra",()=>new THREE.DodecahedronGeometry(.13,0)),M(0xB4B0A6,{flatShading:true,roughness:.9}),x1+(x2-x1)*u+(R()-.5)*.06,.06,z1+(z2-z1)*u+(R()-.5)*.06,g);bl.rotation.set(R()*3,R()*3,R()*3)}
+      const box=T3.box(g,L,.1,.16,0xC9C4B8,(x1+x2)/2,.12,(z1+z2)/2);box.rotation.y=-Math.atan2(z2-z1,x2-x1);T3.cyl(g,.04,.05,.36,0xD8432F,x2,.3,z2,8);T3.cyl(g,.05,.05,.04,0xF5F2EA,x2,.5,z2,8)}
+    else if(f.k==="bridge"){const [a,b]=f.pts;const x1=G.wx(a[0]),z1=G.wz(a[1]),x2=G.wx(b[0]),z2=G.wz(b[1]);const L=Math.hypot(x2-x1,z2-z1)+.5;const ang=-Math.atan2(z2-z1,x2-x1);const bg=new THREE.Group();bg.position.set((x1+x2)/2,0,(z1+z2)/2);bg.rotation.y=ang;g.add(bg);
+      T3.box(bg,L,.06,.36,0xA0703F,0,LAND_Y-.02,0);for(const s of [-1,1]){T3.box(bg,L,.03,.03,0x7A5232,0,LAND_Y+.12,s*.17);for(let k=0;k<5;k++)T3.box(bg,.03,.13,.03,0x7A5232,-L/2+L*(k+.5)/5,LAND_Y+.06,s*.17)}
+      for(const s of [-.32,.32])T3.cyl(bg,.05,.06,.7,0x7A5232,s*L/1.6,.2,0,8)}
+    else if(f.k==="piers"){const pts=Z.parts[0].pts;const n=f.n||16;for(let k=0;k<n;k++){const i=Math.floor(k*pts.length/n);const a=pts[i],b0=pts[(i-1+pts.length)%pts.length],b1=pts[(i+1)%pts.length];let nx=b1[1]-b0[1],ny=-(b1[0]-b0[0]);const L=Math.hypot(nx,ny)||1;nx/=L;ny/=L;
+      const x=G.wx(a[0]+nx*26),z=G.wz(a[1]+ny*26);const p=T3.box(g,.34,.07,.1,0xD7B24C,x,.2,z);p.rotation.y=-Math.atan2(ny,nx)}}
+  }));
+}
+function makeBeacon(){const g=new THREE.Group();mk(geo("islet",()=>new THREE.CylinderGeometry(.95,1.12,.55,14)),M(0x8E8577,{flatShading:true,roughness:.9}),0,.05,0,g).scale.set(.72,1,.72);
+  T3.cyl(g,.9,.95,.22,0xE3CF99,0,-.12,0,20);for(let k=0;k<4;k++)T3.cyl(g,.2-(k+1)*.016,.2-k*.016,.24,k%2?0xC8412F:0xF5F2EA,0,.42+k*.24,0,14);T3.cone(g,.17,.2,0xC8412F,0,1.47,0,14);mergeStatic(g);return g}
+
+/* ---- 建立一片課本海域 ---- */
+function buildRegion(v){
+  const G=layoutOf(v),V=VERSIONS[v],root=W3.root,R={v,G,ground:[]};const skirt=[],sand=[];
+  G.zones.forEach((Z,zi)=>{const gl=[];Z.parts.forEach(pt=>{skirt.push(extr(shapeFromPts(G,pt.pts,null,36),.95,0));sand.push(extr(shapeFromPts(G,pt.pts,pt.hole,10),.55,.1));gl.push(extr(shapeFromPts(G,pt.pts,pt.hole,-8),.33,.08))});
+    const gm=new THREE.Mesh(mergeGeos(gl,true),[groundMat(V.zones[zi].ground),W3.mat.cliff]);gm.position.y=.14;gm.castShadow=true;gm.receiveShadow=true;gm.userData.region=v;root.add(gm);R.ground.push(gm)});
+  const sk=new THREE.Mesh(mergeGeos(skirt),W3.mat.sandD);sk.position.y=-1.25;sk.receiveShadow=true;root.add(sk);
+  const sd=new THREE.Mesh(mergeGeos(sand),W3.mat.sand);sd.position.y=-.35;sd.castShadow=true;sd.receiveShadow=true;sd.userData.region=v;root.add(sd);R.ground.push(sd);
+  const fg=new THREE.Group();buildFeatures(G,fg);root.add(fg);mergeStatic(fg);R.feat=fg;
+  R.beacon=makeBeacon();R.beacon.position.set(G.wx(G.lh[0]),0,G.wz(G.lh[1]));root.add(R.beacon);
+  const wn=G.nodes.map(([x,y])=>new THREE.Vector3(G.wx(x),LAND_Y+.1,G.wz(y)));const pts=new THREE.CatmullRomCurve3(wn).getSpacedPoints(220);
+  const dots=new THREE.InstancedMesh(geo("routeDot",()=>new THREE.SphereGeometry(.05,8,6)),W3.mat.dot,pts.length);const dm=new THREE.Object3D();const wht=new THREE.Color(0xffffff);
+  pts.forEach((q,k)=>{dm.position.copy(q);dm.updateMatrix();dots.setMatrixAt(k,dm.matrix);dots.setColorAt(k,wht)});root.add(dots);R.dots=dots;
+  R.nodeDot=wn.map(n=>{let b=0,bd=1e9;pts.forEach((q,k)=>{const d=q.distanceToSquared(n);if(d<bd){bd=d;b=k}});return b});
+  /* 標籤：島名與海域旗幟 */
+  const pins=$("#pins");
+  R.tags=G.zones.map((Z,zi)=>{const d=document.createElement("div");d.className=`isle z${zi}`;d.innerHTML=`<small>${esc(V.zones[zi].unit)}</small>${esc(V.zones[zi].name)}`;d.hidden=true;pins.appendChild(d);const t=G.tags[zi];return{el:d,p:new THREE.Vector3(G.wx(t[0]),LAND_Y+.05,G.wz(t[1]))}});
+  let top=1e9;G.zones.forEach(Z=>Z.parts.forEach(pt=>pt.pts.forEach(p=>{top=Math.min(top,p[1])})));
+  const b=document.createElement("button");b.type="button";b.className="rtag";b.dataset.act="region";b.dataset.v=v;b.style.setProperty("--rc",REG_COLOR[V.pub]||"#888");b.hidden=true;
+  b.innerHTML=`<b>${esc(V.pub)}版</b><span>${esc(V.sem)}</span><i class="rt-me">我的課本</i><i class="rt-star"></i>`;b.setAttribute("aria-label",`${V.pub}版${V.sem}群島`);pins.appendChild(b);
+  R.banner={el:b,p:new THREE.Vector3(G.wx(500),LAND_Y,G.wz(Math.max(-20,top-24))),pc:new THREE.Vector3(G.ox,LAND_Y+.6,G.oz+1.2)};
+  return R;
+}
+function disposeGroup(grp){if(!grp)return;const keepG=new Set(GEO.values()),keepM=new Set(MATC.values()),keepT=new Set(Object.values(TEX));if(grp.parent)grp.parent.remove(grp);
+  grp.traverse(o=>{if(!o.isMesh)return;if(!keepG.has(o.geometry))o.geometry.dispose();(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(keepM.has(m)||m===W3.winMat||m===W3.mat.lake)return;if(m.map&&!keepT.has(m.map))m.map.dispose();m.dispose()})})}
+function buildRegionProps(v,full){
+  const G=layoutOf(v),V=VERSIONS[v];const base=W3.anims;W3.anims=[];W3.static=!full;const pr=new THREE.Group();
+  V.levels.forEach((l,i)=>{const pos=G.props[i];const g=new THREE.Group();g.position.set(G.wx(pos[0]),LAND_Y,G.wz(pos[1]));g.scale.setScalar(.92);if(full)g.userData.lv=l.id;
+    try{(PROPLIB[l.prop]||PROPLIB.temple)(g)}catch(e){console.error("prop",l.prop,e)}if(full)mergeStatic(g);pr.add(g)});
+  const an=W3.anims;W3.anims=base;W3.static=false;
+  if(!full){const drop=[];pr.traverse(o=>{if(o.userData&&o.userData.keep)delete o.userData.keep;if(!o.isMesh)return;const m=o.material;if(Array.isArray(m)||m.side===THREE.DoubleSide)return;
+      if(m.transparent&&m.opacity<.55){drop.push(o);return}
+      if(m.map||m.transparent||m.metalness>.01||(m.emissive&&m.emissive.getHex()!==0))o.material=M(m===W3.winMat?0x9DB0BD:m.color.getHex(),{flatShading:!!m.flatShading,roughness:Math.max(.3,Math.round(m.roughness*5)/5)})});
+    drop.forEach(o=>o.parent&&o.parent.remove(o));mergeStatic(pr)}
+  W3.root.add(pr);return{group:pr,anims:full?an:[]};
+}
+function queueStaticProps(v){if(!W3.sq)W3.sq=[];if(!W3.sq.includes(v))W3.sq.push(v);if(!W3.sqBusy){W3.sqBusy=true;setTimeout(pumpStatic,W3.sqDelay||80)}}
+function pumpStatic(){const v=W3.sq.shift();if(v&&W3.regions[v]&&!W3.regions[v].props&&v!==W3.activeReg){try{W3.regions[v].props=buildRegionProps(v,false).group}catch(e){console.error(e)}W3.dirty=true;if(W3.renderer.shadowMap.autoUpdate===false)W3.renderer.shadowMap.needsUpdate=true}
+  if(W3.sq.length)setTimeout(pumpStatic,90);else W3.sqBusy=false}
+
 function initWorld(){
   if(!HAS3D)return false;
   const host=$("#world");
   let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"})}catch(e){return false}
-  W3.renderer=renderer;const small=Math.min(window.innerWidth,window.innerHeight)<700;
+  W3.renderer=renderer;const small=Math.min(window.innerWidth,window.innerHeight)<700;W3.small=small;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,small?1.5:1.75));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  const cv=renderer.domElement;cv.tabIndex=0;cv.setAttribute("aria-label","寶島群島 3D 地圖。方向鍵旋轉視角，加號減號拉近拉遠，數字 0 回到全島。");host.insertBefore(cv,host.firstChild);
-  const scene=W3.scene=new THREE.Scene();scene.background=new THREE.Color();scene.fog=new THREE.Fog(0xffffff,34,78);
-  W3.camera=new THREE.PerspectiveCamera(38,1,.1,200);
+  const cv=renderer.domElement;cv.tabIndex=0;cv.setAttribute("aria-label","島嶼星空 3D 地圖。方向鍵旋轉視角，加號減號拉近拉遠，數字 0 回到我的群島，數字 9 看全世界。");host.insertBefore(cv,host.firstChild);
+  const scene=W3.scene=new THREE.Scene();scene.background=new THREE.Color();scene.fog=new THREE.Fog(0xffffff,34,90);
+  W3.camera=new THREE.PerspectiveCamera(38,1,.1,480);W3.tmpCam=new THREE.PerspectiveCamera(38,1,.1,480);
   W3.hemi=new THREE.HemisphereLight(0xffffff,0x888888,.7);scene.add(W3.hemi);
   W3.amb=new THREE.AmbientLight(0xffffff,.15);scene.add(W3.amb);
-  const sun=W3.sun=new THREE.DirectionalLight(0xffffff,1);sun.position.set(9,16,8);sun.castShadow=true;
+  const sun=W3.sun=new THREE.DirectionalLight(0xffffff,1);sun.position.set(9,16,8);sun.castShadow=true;scene.add(sun.target);
   sun.shadow.mapSize.set(small?1024:2048,small?1024:2048);Object.assign(sun.shadow.camera,{left:-16,right:16,top:12,bottom:-12,near:1,far:45});sun.shadow.bias=-.0006;sun.shadow.normalBias=.02;scene.add(sun);
   const root=W3.root=new THREE.Group();scene.add(root);
   /* 材質 */
   W3.mat={water:new THREE.MeshStandardMaterial({color:0x5EB0BA,roughness:.28,metalness:.12,transparent:true,opacity:.88,flatShading:true}),floor:new THREE.MeshStandardMaterial({color:0x2E7C89,roughness:1}),
     sand:new THREE.MeshStandardMaterial({color:0xEBD8A6,roughness:.95}),sandD:new THREE.MeshStandardMaterial({color:0xC4B07D,roughness:1}),cliff:new THREE.MeshStandardMaterial({color:0x9C7B55,roughness:.95}),
-    ground:[0,1,2,3].map(z=>new THREE.MeshStandardMaterial({map:groundTex(ZONES[z].ground),roughness:.92}))};
-  /* 海 */
-  const wg=new THREE.PlaneGeometry(70,48,100,70);wg.rotateX(-Math.PI/2);W3.wpos=wg.attributes.position;W3.wbase=Float32Array.from(W3.wpos.array);
-  const water=new THREE.Mesh(wg,W3.mat.water);water.receiveShadow=true;root.add(water);
-  const fl=new THREE.Mesh(new THREE.PlaneGeometry(70,48),W3.mat.floor);fl.rotation.x=-Math.PI/2;fl.position.y=-1.25;root.add(fl);
-  /* 島嶼 */
-  ISLANDS.forEach((I,i)=>{
-    const sk=new THREE.Mesh(extr(shapeFrom(I,1.24),.95,0),W3.mat.sandD);sk.position.y=-1.25;sk.receiveShadow=true;root.add(sk);
-    mk(extr(shapeFrom(I,1.07),.55,.1),W3.mat.sand,0,-.35,0,root);
-    mk(extr(shapeFrom(I,.95),.33,.08),[W3.mat.ground[i],W3.mat.cliff],0,.14,0,root);
-  });
-  /* 節點 */
-  W3.nodes=LEVELS.map((l,i)=>{const [x,y]=MAP_NODES[i];const p=new THREE.Vector3(WX(x),LAND_Y,WZ(y));const g=new THREE.Group();g.position.copy(p);g.userData.lv=l.id;root.add(g);W3.pickables.push(g);
+    lake:new THREE.MeshStandardMaterial({color:0x4AA7C6,roughness:.16,metalness:.05}),dot:new THREE.MeshBasicMaterial({color:0xffffff}),ground:{}};
+  /* 海：中央有波浪，外圍接平靜的遠洋 */
+  const B=WORLD_BOX,SW=B.x1-B.x0+30,SH=B.z1-B.z0+26,cx=(B.x0+B.x1)/2,cz=(B.z0+B.z1)/2;
+  const wg=new THREE.PlaneGeometry(SW,SH,Math.round(SW*1.15),Math.round(SH*1.15));wg.rotateX(-Math.PI/2);W3.wpos=wg.attributes.position;W3.wbase=Float32Array.from(W3.wpos.array);
+  W3.wfall=new Float32Array(W3.wpos.count);for(let i=0;i<W3.wpos.count;i++){const x=W3.wbase[i*3],z=W3.wbase[i*3+2];W3.wfall[i]=Math.min(1,(SW/2-Math.abs(x))/5,(SH/2-Math.abs(z))/5)}
+  const water=new THREE.Mesh(wg,W3.mat.water);water.position.set(cx,0,cz);water.receiveShadow=true;root.add(water);
+  const FAR=900;[[cx,cz-SH/2-FAR/2,FAR*2+SW,FAR],[cx,cz+SH/2+FAR/2,FAR*2+SW,FAR],[cx-SW/2-FAR/2,cz,FAR,SH],[cx+SW/2+FAR/2,cz,FAR,SH]].forEach(([x,z,w,h])=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),W3.mat.water);m.rotation.x=-Math.PI/2;m.position.set(x,0,z);root.add(m)});
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(FAR*2+SW,FAR*2+SH),W3.mat.floor);fl.rotation.x=-Math.PI/2;fl.position.set(cx,-1.25,cz);root.add(fl);
+  /* 六片課本海域 */
+  W3.regions={};for(const v of WORLD_ORDER)W3.regions[v]=buildRegion(v);
+  /* 其他海域的關卡圓盤 */
+  W3.discs=new THREE.InstancedMesh(new THREE.CylinderGeometry(.3,.36,.12,20),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.5}),WORLD_ORDER.length*18);W3.discs.castShadow=true;W3.discs.receiveShadow=true;
+  {const o=new THREE.Object3D();WORLD_ORDER.forEach((v,k)=>{const G=layoutOf(v);const V=VERSIONS[v];G.nodes.forEach(([x,y],i)=>{o.position.set(G.wx(x),LAND_Y+.06,G.wz(y));o.updateMatrix();W3.discs.setMatrixAt(k*18+i,o.matrix);W3.discs.setColorAt(k*18+i,new THREE.Color(ZONE3[V.levels[i].z]))})})}
+  root.add(W3.discs);
+  /* 目前課本的關卡節點 */
+  W3.nodes=LEVELS.map((l,i)=>{const p=new THREE.Vector3(0,LAND_Y,0);const g=new THREE.Group();g.userData.lv=l.id;root.add(g);W3.pickables.push(g);
     const zc=ZONE3[l.z];T3.cyl(g,.42,.5,.16,M(zc,{roughness:.45}),0,.08,0,28);T3.cyl(g,.33,.33,.02,M(0xFFFFFF,{roughness:.4}),0,.17,0,28);T3.cyl(g,.25,.25,.025,M(zc,{roughness:.35}),0,.18,0,28);
     const gm=new THREE.MeshStandardMaterial({color:zc,roughness:.25,metalness:.3,flatShading:true});const gem=mk(geo("gem",()=>new THREE.OctahedronGeometry(.2,0)),gm,0,.95,0,g);gem.scale.y=1.3;
     const star=new THREE.Group();star.position.y=1.38;g.add(star);const ss=new THREE.Shape();for(let k=0;k<10;k++){const a=k/10*Math.PI*2-Math.PI/2,r=k%2?.07:.16;k?ss.lineTo(Math.cos(a)*r,-Math.sin(a)*r):ss.moveTo(Math.cos(a)*r,-Math.sin(a)*r)}ss.closePath();
     mk(geo("star3",()=>{const e=new THREE.ExtrudeGeometry(ss,{depth:.05,bevelEnabled:true,bevelThickness:.015,bevelSize:.015,bevelSegments:2});e.translate(0,0,-.025);return e}),GOLDM(),0,0,0,star);star.visible=false;
     const ring=new THREE.Mesh(geo("ring",()=>new THREE.TorusGeometry(.6,.035,8,40)),new THREE.MeshBasicMaterial({color:0x2BD18F,transparent:true,opacity:.8}));ring.rotation.x=Math.PI/2;ring.position.y=.04;ring.visible=false;g.add(ring);
     return {g,p,gem,gm,star,ring,l}});
-  /* 航線 */
-  const curve=new THREE.CatmullRomCurve3(W3.nodes.map(n=>n.p.clone().setY(LAND_Y+.1)));const pts=curve.getSpacedPoints(240);
-  const dots=new THREE.InstancedMesh(new THREE.SphereGeometry(.05,8,6),new THREE.MeshBasicMaterial({color:0xffffff}),pts.length);const dm=new THREE.Object3D();
-  pts.forEach((q,k)=>{dm.position.copy(q);dm.updateMatrix();dots.setMatrixAt(k,dm.matrix);dots.setColorAt(k,new THREE.Color(0xffffff))});root.add(dots);W3.dots=dots;
-  W3.nodeDot=W3.nodes.map(n=>{let b=0,bd=1e9;pts.forEach((q,k)=>{const d=q.distanceToSquared(n.p);if(d<bd){bd=d;b=k}});return b});
-  /* 地標 */
-  const placed=[];
-  W3.nodes.forEach((n,i)=>{const isl=islandAt(n.p.x,n.p.z,1);const cand=[[0,-.98],[-.82,-.62],[.82,-.62],[-1,0],[1,0],[0,-1.35],[-.7,.6],[.7,.6]];let pos=null;
-    for(const [dx,dz] of cand){const x=n.p.x+dx,z=n.p.z+dz;if(islandAt(x,z,.86)!==isl)continue;if(W3.nodes.some((m,j)=>j!==i&&Math.hypot(m.p.x-x,m.p.z-z)<1.0))continue;if(placed.some(p=>Math.hypot(p[0]-x,p[1]-z)<1.08))continue;pos=[x,z];break}
-    if(!pos)pos=[n.p.x,n.p.z-.98];placed.push(pos)});
-  W3.propPos=placed;W3.nodePick=W3.pickables.slice();buildProps();
-  /* 樹木與小丘 */
-  const R=rnd(42);const tr=[],cnt=[16,9,9,11];
-  ISLANDS.forEach((I,i)=>{let n=0,guard=0;while(n<cnt[i]&&guard++<900){const x=WX(I.cx+(R()*2-1)*I.rx),z=WZ(I.cy+(R()*2-1)*I.ry);if(islandAt(x,z,.84)!==i)continue;if(W3.nodes.some(m=>Math.hypot(m.p.x-x,m.p.z-z)<.82))continue;if(placed.some(p=>Math.hypot(p[0]-x,p[1]-z)<.78))continue;if(tr.some(t=>Math.hypot(t[0]-x,t[1]-z)<.42))continue;tr.push([x,z,i,.75+R()*.55]);n++}});
+  W3.nodePick=W3.pickables.slice();
+  /* 樹木（六片海域一起） */
+  const R=rnd(42);const tr=[];WORLD_ORDER.forEach(v=>{const G=layoutOf(v);G.trees.forEach(([x,y,zi,s])=>tr.push([G.wx(x),G.wz(y),zi,s]))});
   const trunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(.04,.055,.28,6),new THREE.MeshStandardMaterial({color:0x7A5636,roughness:.9}),tr.length);
   const crown=new THREE.InstancedMesh(new THREE.ConeGeometry(.24,.55,7),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.85,flatShading:true}),tr.length*2);
   const tcol=[[0x5E9E4E,0x77B05A],[0x4E9A6A,0x6DB07E],[0x4C8E5C,0x5FA06B],[0x3F9A7E,0x58B18F]];const o3=new THREE.Object3D();
@@ -2355,24 +2639,25 @@ function initWorld(){
     o3.position.set(x,LAND_Y+.42*s,z);o3.rotation.y=R()*3;o3.updateMatrix();crown.setMatrixAt(k*2,o3.matrix);crown.setColorAt(k*2,new THREE.Color(tcol[i][0]));
     o3.position.set(x,LAND_Y+.66*s,z);o3.scale.setScalar(s*.72);o3.updateMatrix();crown.setMatrixAt(k*2+1,o3.matrix);crown.setColorAt(k*2+1,new THREE.Color(tcol[i][1]))});
   [trunk,crown].forEach(m=>{m.castShadow=true;m.receiveShadow=true;root.add(m)});
-  /* 燈塔與黑熊 */
-  const LH=W3.lh=makeLighthouse();LH.g.position.set(WX(LIGHTHOUSE[0]),0,WZ(LIGHTHOUSE[1]));root.add(LH.g);W3.anims.push((t,dt)=>{LH.pivot.rotation.y+=dt*(.35+1.2*(W3.prog||0))});
-  const bear=W3.bear=makeBear("wave");bear.scale.setScalar(.42);bear.position.set(LH.g.position.x+.6,.33,LH.g.position.z+.45);mergeStatic(bear);root.add(bear);
+  /* 燈塔與黑熊（跟著目前課本移動） */
+  const LH=W3.lh=makeLighthouse();root.add(LH.g);W3.anims.push((t,dt)=>{LH.pivot.rotation.y+=dt*(.35+1.2*(W3.prog||0))});
+  const bear=W3.bear=makeBear("wave");bear.scale.setScalar(.42);mergeStatic(bear);root.add(bear);
   W3.anims.push(t=>{bear.rotation.y=CAM.az*.8-.3;bear.userData.aR.rotation.z=2.0+Math.sin(t*5)*.45;bear.position.y=.33+Math.abs(Math.sin(t*2.5))*.02});
-  /* 小船與雲 */
-  const boats=[[0xC0392B,0,.045],[0x2E6DB4,2.2,.035],[0xF2F5F7,4.1,.04]].map(([c,ph,sp])=>{const b=makeBoat(c);root.add(b);return{b,ph,sp}});
-  W3.anims.push(t=>{for(const o of boats){const a=o.ph+t*o.sp;const x=Math.cos(a)*12.6,z=Math.sin(a)*8.4;o.b.position.set(x,.02+Math.sin(t*1.6+o.ph)*.04,z);o.b.rotation.y=-a;o.b.rotation.z=Math.sin(t*1.3+o.ph)*.06}});
-  const clouds=[0,1,2,3,4].map(k=>{const c=makeCloud(k*13+3);c.position.set(-16+k*8,5+(k%3)*.7,-6+(k*5)%10);root.add(c);return c});
-  W3.anims.push((t,dt)=>{for(const c of clouds){c.position.x+=dt*.25;if(c.position.x>18)c.position.x=-18}});
+  /* 小船：繞著目前海域，以及航行在五、六年級海域之間 */
+  W3.boatC=new THREE.Vector3();
+  const boats=[[0xC0392B,0,.045,12.4,8.3,1],[0x2E6DB4,2.2,.035,12.4,8.3,1],[0xF2F5F7,4.1,.04,12.4,8.3,1],[0xE0A526,1,.018,40,.9,0],[0x2E9A66,3.1,.016,40,.9,0],[0x7B4FA8,5.2,.02,40,.9,0]].map(([c,ph,sp,ax,az,loc])=>{const b=makeBoat(c);root.add(b);return{b,ph,sp,ax,az,loc}});
+  W3.anims.push(t=>{for(const o of boats){const a=o.ph+t*o.sp;const c=o.loc?W3.boatC:null;const x=(c?c.x:0)+Math.cos(a)*o.ax,z=(c?c.z:.2)+Math.sin(a)*o.az;o.b.position.set(x,.02+Math.sin(t*1.6+o.ph)*.04,z);o.b.rotation.y=Math.atan2(-o.az*Math.cos(a),-o.ax*Math.sin(a));o.b.rotation.z=Math.sin(t*1.3+o.ph)*.06}});
+  const clouds=Array.from({length:12},(_,k)=>{const c=makeCloud(k*13+3);c.scale.setScalar(.8);c.position.set(-56+k*10,6.2+(k%3)*.7,[-19,-1,18,-10,9][k%5]);c.traverse(o=>{if(o.isMesh){o.castShadow=false}});root.add(c);return c});
+  W3.anims.push((t,dt)=>{for(const c of clouds){c.position.x+=dt*.25;if(c.position.x>60)c.position.x=-60}});
   /* 節點動畫 */
   W3.anims.push(t=>{for(const n of W3.nodes){n.gem.rotation.y=t*1.1;n.gem.position.y=.95+Math.sin(t*2+n.l.i)*.05;n.star.rotation.y=t*1.5;if(n.ring.visible){const u=(t*.7)%1;n.ring.scale.setScalar(.8+u*.7);n.ring.material.opacity=.85*(1-u)}}
     if(W3.player){const P=W3.player;P.position.y=W3.playerY+Math.abs(Math.sin(t*2.6))*.03;P.rotation.y=CAM.az;const w=(t%6)<1.2;P.userData.aR.rotation.z=w?2.3+Math.sin(t*12)*.3:(P.userData.job==="inventor"?.05:.16)}});
-  /* 標籤 */
+  /* 關卡標籤 */
   const pins=$("#pins");
   W3.pinEls=LEVELS.map(l=>{const b=document.createElement("button");b.className=`pin z${l.z}`;b.dataset.act="level";b.dataset.id=l.id;b.dataset.fly="1";b.innerHTML=`<span class="pn">${l.i+1}</span><span class="nm">${esc(l.name)}</span><span class="ps"></span>`;
     b.addEventListener("mouseenter",()=>hoverNode(l.id));b.addEventListener("mouseleave",()=>hoverNode(null));pins.appendChild(b);return b});
-  W3.tags=ISLANDS.map((I,i)=>{const d=document.createElement("div");d.className=`isle z${i}`;d.innerHTML=`<small>${esc(ZONES[i].unit)}</small>${esc(ZONES[i].name)}`;pins.appendChild(d);return{el:d,p:new THREE.Vector3(WX(I.cx),LAND_Y,WZ(I.cy-I.ry*1.05))}});
-  const lt=document.createElement("div");lt.className="isle light";pins.appendChild(lt);W3.tags.push({el:lt,p:new THREE.Vector3(LH.g.position.x,2.75,LH.g.position.z),lh:true});W3.lhTag=lt;
+  const lt=document.createElement("div");lt.className="isle light";pins.appendChild(lt);W3.lhTag=lt;W3.lhItem={el:lt,p:new THREE.Vector3(0,2.75,0)};
+  W3.sizeEp=1;
   /* 事件 */
   bindWorldInput(cv);
   const ro=new ResizeObserver(()=>resizeWorld());ro.observe(host);
@@ -2380,40 +2665,44 @@ function initWorld(){
   const mq=matchMedia("(prefers-color-scheme: dark)");(mq.addEventListener?mq.addEventListener("change",applyPalette):mq.addListener(applyPalette));
   new MutationObserver(applyPalette).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
   cv.addEventListener("webglcontextlost",e=>{e.preventDefault();W3.on=false;fallbackFlat("3D 畫面暫時中斷，已改用平面地圖。")},false);
-  W3.on=true;resizeWorld();applyPalette();updateWorldState();
+  W3.on=true;setActiveRegion(VER.id);resizeWorld();applyPalette();updateWorldState();
   const r=rec();const n=r&&nextLevelId(r);
-  if(window.innerWidth<=900&&n){const np=W3.nodes[LV[n].i].p;setCam({az:0,pol:.95,r:Math.min(W3.fitR,14),tx:np.x,tz:np.z+1})}else setCam(homeCam());
-  if(!REDUCED){const h=homeCam();const end=window.innerWidth<=900&&n?{az:0,pol:.95,r:Math.min(W3.fitR,14),tx:CAM.tx,tz:CAM.tz}:h;setCam({az:-.7,pol:.55,r:end.r*1.5,tx:end.tx,tz:end.tz});tweenCam(end,1700)}
+  let end;if(!r)end=worldCam();else if(window.innerWidth<=900&&n){const np=W3.nodes[LV[n].i].p;end={az:0,pol:.95,r:Math.min(W3.fitR,14),tx:np.x,tz:np.z+1}}else end=homeCam();
+  setCam(end);
+  if(!REDUCED){setCam({az:end.az-.7,pol:.55,r:Math.min(W3.maxR,end.r*1.5),tx:end.tx,tz:end.tz});tweenCam(end,1700)}
   $("#loading3d").remove();
   requestAnimationFrame(loop);
+  W3.sqDelay=900;WORLD_ORDER.forEach(v=>{if(v!==W3.activeReg)queueStaticProps(v)});
   return true;
 }
 
-/* 切換課本版本時，重建地標、地面與標籤 */
-function buildProps(){
-  if(W3.propRoot){const keepG=new Set(GEO.values()),keepM=new Set(MATC.values()),keepT=new Set(Object.values(TEX));W3.root.remove(W3.propRoot);
-    W3.propRoot.traverse(o=>{if(!o.isMesh)return;if(!keepG.has(o.geometry))o.geometry.dispose();(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(keepM.has(m)||m===W3.winMat)return;if(m.map&&!keepT.has(m.map))m.map.dispose();m.dispose()})})}
-  const base=W3.anims;W3.anims=[];W3.lamps=[];
-  const pr=W3.propRoot=new THREE.Group();W3.root.add(pr);W3.pickables=W3.nodePick.slice();
-  LEVELS.forEach((l,i)=>{const pos=W3.propPos[i];const g=new THREE.Group();g.position.set(pos[0],LAND_Y,pos[1]);g.userData.lv=l.id;g.scale.setScalar(.92);
-    try{(PROPLIB[l.prop]||PROPLIB.temple)(g)}catch(e){console.error("prop",l.prop,e)}mergeStatic(g);pr.add(g);W3.pickables.push(g)});
-  W3.propAnims=W3.anims;W3.anims=base;
+/* 切換目前課本：節點、地標、燈塔搬到該海域 */
+function setActiveRegion(v){
+  const prev=W3.activeReg;const G=layoutOf(v);const R=W3.regions[v];
+  W3.nodes.forEach((n,i)=>{const [x,y]=G.nodes[i];n.p.set(G.wx(x),LAND_Y,G.wz(y));n.g.position.copy(n.p);n.l=LEVELS[i]});
+  const o=new THREE.Object3D();WORLD_ORDER.forEach((u,k)=>{const Gu=layoutOf(u);Gu.nodes.forEach(([x,y],i)=>{o.position.set(Gu.wx(x),LAND_Y+.06,Gu.wz(y));o.scale.setScalar(u===v?.001:1);o.updateMatrix();W3.discs.setMatrixAt(k*18+i,o.matrix)})});W3.discs.instanceMatrix.needsUpdate=true;
+  if(prev&&prev!==v&&W3.regions[prev]){const P=W3.regions[prev];const wht=new THREE.Color(0xffffff);for(let k=0;k<P.dots.count;k++)P.dots.setColorAt(k,wht);P.dots.instanceColor.needsUpdate=true;P.beacon.visible=true;
+    disposeGroup(P.props);P.props=null;queueStaticProps(prev)}
+  W3.activeReg=v;W3.dots=R.dots;W3.nodeDot=R.nodeDot;R.beacon.visible=false;
+  const lx=G.wx(G.lh[0]),lz=G.wz(G.lh[1]);W3.lh.g.position.set(lx,0,lz);W3.bear.position.set(lx+.6,.33,lz+.45);W3.lhItem.p.set(lx,2.75,lz);W3.boatC.set(G.ox,0,G.oz);
+  if(R.props){disposeGroup(R.props);R.props=null}
+  const b=buildRegionProps(v,true);R.props=b.group;W3.propAnims=b.anims;
+  W3.pickables=W3.nodePick.concat(b.group.children);WORLD_ORDER.forEach(u=>W3.pickables.push(...W3.regions[u].ground));
+  WORLD_ORDER.forEach(u=>{const bn=W3.regions[u].banner.el;bn.classList.toggle("me",u===v)});
+  W3.focus=undefined;W3.sizeEp=(W3.sizeEp||0)+1;
+  if(W3.renderer&&W3.renderer.shadowMap.autoUpdate===false)W3.renderer.shadowMap.needsUpdate=true;
 }
 function applyWorldVersion(){
   if(!W3.on)return;
-  W3.nodes.forEach((n,i)=>{n.l=LEVELS[i]});
-  W3.mat.ground.forEach((m,i)=>{const old=m.map;m.map=groundTex(ZONES[i].ground);m.needsUpdate=true;if(old)old.dispose()});
-  buildProps();
+  setActiveRegion(VER.id);
   W3.pinEls.forEach((b,i)=>{b.querySelector(".nm").textContent=LEVELS[i].name});
-  W3.tags.slice(0,4).forEach((t,i)=>{t.el.innerHTML=`<small>${esc(ZONES[i].unit)}</small>${esc(ZONES[i].name)}`});
-  if(W3.renderer&&W3.renderer.shadowMap.autoUpdate===false)W3.renderer.shadowMap.needsUpdate=true;
   hovered=null;updateWorldState();W3.dirty=true;
 }
 function switchVersion(id){if(VER&&VER.id===id)return;useVersion(id);mapBuilt=false;S.zone=0;if(W3.on)applyWorldVersion();else if(W3.flat)renderMap()}
 function applyPalette(){
   if(!W3.scene)return;const p=isDark()?PAL.night:PAL.day;W3.night=isDark();
   W3.scene.background.setHex(p.sky);W3.scene.fog.color.setHex(p.sky);W3.mat.water.color.setHex(p.sea);W3.mat.floor.color.setHex(p.floor);W3.mat.sand.color.setHex(p.sand);W3.mat.sandD.color.setHex(p.sandD);
-  W3.mat.ground.forEach(m=>m.color.setHex(p.ground));W3.mat.cliff.color.setHex(isDark()?0x5C4A36:0x9C7B55);
+  Object.values(W3.mat.ground).forEach(m=>m.color.setHex(p.ground));W3.mat.lake.color.setHex(isDark()?0x2E6F86:0x4AA7C6);W3.mat.cliff.color.setHex(isDark()?0x5C4A36:0x9C7B55);
   W3.hemi.color.setHex(p.hs);W3.hemi.groundColor.setHex(p.hg);W3.hemi.intensity=p.hemiI;W3.sun.color.setHex(p.sun);W3.sun.intensity=p.sunI;W3.amb.intensity=p.amb;
   if(W3.winMat)W3.winMat.emissiveIntensity=p.winI;(W3.lamps||[]).forEach(m=>{if(m.userData.base==null)m.userData.base=m.emissiveIntensity});
   updateLighthouse();W3.dirty=true;
@@ -2423,14 +2712,32 @@ function resizeWorld(){
   if(!W3.renderer)return;const host=$("#world");const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;
   W3.w=w;W3.h=h;W3.renderer.setSize(w,h,false);W3.camera.aspect=w/h;W3.camera.updateProjectionMatrix();
   const lb=$("#logbook");W3.panelW=getComputedStyle(lb).position==="absolute"?lb.offsetWidth+16:0;
-  W3.fitR=fitRadius();applyCam();
+  W3.fitR=fitRadius();const wc=worldCam();W3.worldR=wc.r;W3.maxR=Math.max(wc.r*1.12,W3.fitR*1.4);W3.sizeEp=(W3.sizeEp||0)+1;applyCam();
 }
-function fitRadius(){const c=W3.camera;const vt=Math.tan(c.fov*Math.PI/360);const ht=vt*c.aspect;const frac=Math.max(.45,(W3.w-W3.panelW)/W3.w);return Math.max(11.6/(ht*frac),(7.6*Math.sin(.92)+1.4)/vt)}
-function homeCam(){const r=W3.fitR;const wpp=2*r*Math.tan(W3.camera.fov*Math.PI/360)/W3.h;return{az:0,pol:.92,r,tx:-(W3.panelW/2)*wpp,tz:.4}}
+function fitRadius(){const c=W3.camera;const vt=Math.tan(c.fov*Math.PI/360);const ht=vt*c.aspect;const frac=Math.max(.45,(W3.w-W3.panelW)/W3.w);return Math.max(12.3/(ht*frac),(7.8*Math.sin(.92)+1.4)/vt)}
+function wppAt(r){return 2*r*Math.tan(W3.camera.fov*Math.PI/360)/W3.h}
+function regionCam(v){const [ox,oz]=REGION_POS[v]||[0,0];const r=W3.fitR;return{az:0,pol:.92,r,tx:ox-(W3.panelW/2)*wppAt(r),tz:oz+.4}}
+function homeCam(){return regionCam(W3.activeReg||VER.id)}
+function worldCam(){
+  const c=W3.tmpCam;c.fov=W3.camera.fov;c.aspect=W3.camera.aspect;c.updateProjectionMatrix();const B=WORLD_BOX;const cx=(B.x0+B.x1)/2,cz=(B.z0+B.z1)/2;
+  const left=-1+2*(W3.panelW/W3.w)+.03;const pts=[];[B.x0+4,B.x1-4].forEach(x=>[B.z0+1.5,B.z1-1.5].forEach(z=>[0,1.2].forEach(y=>pts.push(new THREE.Vector3(x,y,z)))));
+  const v=new THREE.Vector3();let best=null;const pol=.66;
+  for(const az of (W3.w<W3.h*1.05?[Math.PI/2,0]:[0])){
+    const pose=r=>{const dx=(W3.panelW/2)*wppAt(r);const tx=cx-dx*Math.cos(az),tz=cz+dx*Math.sin(az);const sp=Math.sin(pol);c.position.set(tx+r*sp*Math.sin(az),r*Math.cos(pol),tz+r*sp*Math.cos(az));c.lookAt(tx,0,tz);c.updateMatrixWorld();return{tx,tz}};
+    const fits=r=>{pose(r);return pts.every(p=>{v.copy(p).project(c);return v.x>left&&v.x<.97&&v.y>-.95&&v.y<.86})};
+    let lo=8,hi=300;if(!fits(hi))continue;for(let k=0;k<24;k++){const m=(lo+hi)/2;if(fits(m))hi=m;else lo=m}
+    if(!best||hi<best.r){const q=pose(hi);best={az,pol,r:hi,tx:q.tx,tz:q.tz}}}
+  return best||{az:0,pol,r:90,tx:cx,tz:cz};
+}
 function setCam(o){Object.assign(CAM,o);applyCam()}
 function applyCam(){
-  if(!W3.camera)return;CAM.pol=Math.min(1.2,Math.max(.4,CAM.pol));CAM.r=Math.min((W3.fitR||30)*1.4,Math.max(5.5,CAM.r));CAM.tx=Math.max(-12,Math.min(12,CAM.tx));CAM.tz=Math.max(-8,Math.min(8,CAM.tz));
+  if(!W3.camera)return;const B=WORLD_BOX;CAM.pol=Math.min(1.2,Math.max(.4,CAM.pol));CAM.r=Math.min(W3.maxR||60,Math.max(5.5,CAM.r));CAM.tx=Math.max(B.x0,Math.min(B.x1,CAM.tx));CAM.tz=Math.max(B.z0,Math.min(B.z1,CAM.tz));
   const c=W3.camera,sp=Math.sin(CAM.pol);c.position.set(CAM.tx+CAM.r*sp*Math.sin(CAM.az),CAM.r*Math.cos(CAM.pol),CAM.tz+CAM.r*sp*Math.cos(CAM.az));c.lookAt(CAM.tx,0,CAM.tz);
+  const f=W3.scene.fog;f.near=Math.max(30,CAM.r*1.05);f.far=Math.max(88,CAM.r*2.6+24);
+  const S=W3.sun,sx=Math.round(CAM.tx/2)*2,sz=Math.round(CAM.tz/2)*2;const ext=CAM.r>46?2.2:CAM.r>30?1.5:1;
+  if(S.target.position.x!==sx||S.target.position.z!==sz||W3.shExt!==ext){S.position.set(sx+9,16,sz+8);S.target.position.set(sx,0,sz);S.target.updateMatrixWorld();
+    if(W3.shExt!==ext){W3.shExt=ext;Object.assign(S.shadow.camera,{left:-16*ext,right:16*ext,top:12*ext,bottom:-12*ext,far:45+ext*12});S.shadow.camera.updateProjectionMatrix()}
+    if(W3.renderer&&W3.renderer.shadowMap.autoUpdate===false)W3.renderer.shadowMap.needsUpdate=true}
   $("#zoomOut").textContent=Math.round((W3.fitR||CAM.r)/CAM.r*100)+"%";W3.dirty=true;
 }
 function tweenCam(to,dur,cb){
@@ -2448,21 +2755,64 @@ function loop(now){
   if(document.hidden||!W3.inView)return;
   const busy=openStack.length>0;
   if(CAM.tw)stepTween(now);
-  if(!REDUCED&&!busy){W3.t+=dt;const p=W3.wpos,b=W3.wbase,t=W3.t;for(let i=0;i<p.count;i++){const x=b[i*3],z=b[i*3+2];p.array[i*3+1]=Math.sin(x*.7+t*1.1)*.05+Math.cos(z*.9+t*.8)*.045+Math.sin((x+z)*1.6+t*1.7)*.016}p.needsUpdate=true;for(const f of W3.anims)f(W3.t,dt);if(W3.propAnims)for(const f of W3.propAnims)f(W3.t,dt)}
+  if(!REDUCED&&!busy){W3.t+=dt;const p=W3.wpos,b=W3.wbase,t=W3.t;for(let i=0;i<p.count;i++){const x=b[i*3],z=b[i*3+2];p.array[i*3+1]=(Math.sin(x*.7+t*1.1)*.05+Math.cos(z*.9+t*.8)*.045+Math.sin((x+z)*1.6+t*1.7)*.016)*W3.wfall[i]}p.needsUpdate=true;for(const f of W3.anims)f(W3.t,dt);if(W3.propAnims)for(const f of W3.propAnims)f(W3.t,dt)}
   else if(!W3.dirty)return;
   if(W3.dirty){updatePins();W3.dirty=false}
   W3.renderer.render(W3.scene,W3.camera);
   if(busy)return;perfSum+=dt;perfN++;if(perfN===120){const avg=perfSum/perfN;perfN=0;perfSum=0;if(avg>.034&&degraded<2){degraded++;if(degraded===1){W3.renderer.setPixelRatio(1);resizeWorld()}else{W3.renderer.shadowMap.autoUpdate=false;W3.renderer.shadowMap.needsUpdate=true;setInterval(()=>{if(W3.renderer)W3.renderer.shadowMap.needsUpdate=true},400)}}}
 }
 const _v=window.THREE?new THREE.Vector3():null;
+function regionAtWorld(x,z){let best=null,bd=1e9;for(const v of WORLD_ORDER){const [ox,oz]=REGION_POS[v];const d=Math.hypot((x-ox)/12.5,(z-oz)/8.6);if(d<bd){bd=d;best=v}}return bd<1.3?best:null}
+function isOverview(){return CAM.r>(W3.fitR||24)*1.5}
 function updatePins(){
-  if(!W3.pinEls)return;const w=W3.w,h=W3.h,c=W3.camera;const ppu=h/(2*Math.tan(c.fov*Math.PI/360)*CAM.r);$("#pins").classList.toggle("compact",ppu<36);
-  const place=(el,p,dy)=>{_v.copy(p);_v.y+=dy;_v.project(c);if(_v.z>1||_v.z<-1||Math.abs(_v.x)>1.25||Math.abs(_v.y)>1.25){el.hidden=true;return null}el.hidden=false;const x=(_v.x*.5+.5)*w,y=(-_v.y*.5+.5)*h;el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-100%)`;return _v.z};
-  W3.nodes.forEach((n,i)=>{const z=place(W3.pinEls[i],n.p,W3.player&&W3.playerNode===i?1.45:1.4);if(z!=null)W3.pinEls[i].style.zIndex=String(Math.round((1-z)*1e6))});
-  W3.tags.forEach(t=>place(t.el,t.p,t.lh?0:.2));
+  if(!W3.pinEls)return;const w=W3.w,h=W3.h,c=W3.camera;c.updateMatrixWorld();const wpp=wppAt(CAM.r),ppu=1/wpp;const pinsEl=$("#pins");
+  const ov=isOverview(),far=ppu<12,compact=ppu<36;
+  if(compact!==W3.wasCompact){W3.wasCompact=compact;W3.sizeEp++}
+  pinsEl.classList.toggle("compact",compact);pinsEl.classList.toggle("far",far);
+  const fr=ov?null:regionAtWorld(CAM.tx+Math.cos(CAM.az)*(W3.panelW/2)*wpp,CAM.tz-Math.sin(CAM.az)*(W3.panelW/2)*wpp);
+  const fk=(ov?"ov":"")+(fr||"-");if(fk!==W3.focusKey){W3.focusKey=fk;W3.focus=fr;W3.ov=ov;onFocusChange()}
+  const proj=(p,dy)=>{_v.copy(p);_v.y+=dy||0;_v.project(c);if(_v.z>1||_v.z<-1||Math.abs(_v.x)>1.2||Math.abs(_v.y)>1.2)return null;return{x:(_v.x*.5+.5)*w,y:(-_v.y*.5+.5)*h,z:_v.z}};
+  const put=(el,s,dy)=>{el.style.transform=`translate(${s.x.toFixed(1)}px,${(s.y+(dy||0)).toFixed(1)}px) translate(-50%,-100%)`};
+  const size=el=>{if(el._ep!==W3.sizeEp){el._w=el.offsetWidth;el._h=el.offsetHeight;el._ep=W3.sizeEp}};
+  const rects=[];const hit=r=>rects.some(q=>r[0]<q[2]-2&&r[2]>q[0]+2&&r[1]<q[3]-2&&r[3]>q[1]+2);
+  /* 關卡標籤：前面的優先；重疊時把後面的縮成只剩編號 */
+  const showPins=!far&&!ov&&(!fr||fr===W3.activeReg);
+  const items=W3.nodes.map((n,i)=>({i,s:showPins?proj(n.p,W3.player&&W3.playerNode===i?1.45:1.4):null}));
+  items.forEach(o=>{const el=W3.pinEls[o.i];if(!o.s){el.hidden=true;return}el.hidden=false;el.style.zIndex=String(Math.round((1-o.s.z)*1e6))});
+  const hv=hovered?LV[hovered].i:-1;
+  const vis=items.filter(o=>o.s).sort((a,b)=>((b.i===W3.nextIdx)-(a.i===W3.nextIdx))||((b.i===hv)-(a.i===hv))||(a.s.z-b.s.z));
+  for(const o of vis){const el=W3.pinEls[o.i];if(el._ep!==W3.sizeEp){el.classList.remove("sq");size(el)}let r=[o.s.x-el._w/2,o.s.y-el._h-6,o.s.x+el._w/2,o.s.y];
+    const sq=!compact&&o.i!==W3.nextIdx&&o.i!==hv&&hit(r);if(sq){const sw=el._h+2;r=[o.s.x-sw/2,o.s.y-el._h-6,o.s.x+sw/2,o.s.y]}if(sq!==el.classList.contains("sq"))el.classList.toggle("sq",sq);
+    rects.push(r);put(el,o.s)}
+  /* 島名：只顯示正在看的海域，避開關卡標籤 */
+  for(const v of WORLD_ORDER){const R=W3.regions[v];const show=!ov&&v===fr;
+    R.tags.forEach(t=>{if(!show){t.el.hidden=true;return}const s=proj(t.p,0);if(!s){t.el.hidden=true;return}t.el.hidden=false;size(t.el);let best=null;
+      for(const dy of [0,-28,28,-56,56]){const r=[s.x-t.el._w/2,s.y+dy-t.el._h,s.x+t.el._w/2,s.y+dy];if(!hit(r)){best={dy,r};break}}
+      t.el.classList.toggle("dim",!best);if(best)rects.push(best.r);put(t.el,s,best?best.dy:0)});
+    const Bn=R.banner;const showB=ov||(fr!==v);const s=showB?proj(Math.abs(Math.sin(CAM.az))>.5?Bn.pc:Bn.p,0):null;if(!s){Bn.el.hidden=true}else{Bn.el.hidden=false;put(Bn.el,s)}}
+  const lt=W3.lhItem;const ls=!ov&&fr===W3.activeReg?proj(lt.p,0):null;if(!ls)lt.el.hidden=true;else{lt.el.hidden=false;size(lt.el);const r=[ls.x-lt.el._w/2,ls.y-lt.el._h,ls.x+lt.el._w/2,ls.y];lt.el.classList.toggle("dim",hit(r));put(lt.el,ls)}
 }
+function onFocusChange(){
+  const v=W3.focus,ov=W3.ov,act=W3.activeReg;const r=rec();
+  const eb=$("#hudEyebrow"),h2=$("#hudTitle");
+  if(ov||!v){eb.textContent="3D Social Adventure";h2.textContent="島嶼星空"}else{const V=VERSIONS[v];eb.textContent=v===act&&r?"我的課本群島":"群島參觀中";h2.textContent=`${V.pub}版・${V.sem}`}
+  WORLD_ORDER.forEach(u=>{const R=W3.regions[u];const V=VERSIONS[u];const rr=r?STORE.profiles[keyOf(u,r.cls,r.seat)]:null;const st=rr?starsOf(rr):0;R.banner.el.querySelector(".rt-star").textContent=rr?`★${st}`:"";R.banner.el.classList.toggle("me",u===act&&!!r)});
+  renderRegionCard();
+}
+function renderRegionCard(){
+  const card=$("#regionCard");if(!card)return;const v=W3.focus,r=rec();
+  if(W3.ov||!v||(r&&v===W3.activeReg)){card.hidden=true;return}
+  const V=VERSIONS[v];const rr=r?STORE.profiles[keyOf(v,r.cls,r.seat)]:null;
+  card.innerHTML=`<div class="rc-head"><span class="rc-dot" style="--rc:${REG_COLOR[V.pub]}"></span><div><b>${esc(V.pub)}版・${V.grade===5?"五":"六"}年級上學期</b><small>${r?(rr?`你在這裡完成了 ${doneOf(rr)} 關`:"參觀其他課本的群島"):"點選你的課本，開始冒險"}</small></div></div>
+    <ol class="rc-zones">${V.zones.map((z,i)=>`<li class="z${i}"><span>${esc(z.unit.replace(/^第|單元$/g,""))}</span>${esc(z.name)}<small>${esc(z.title)}</small></li>`).join("")}</ol>
+    <div class="rc-act"><button class="btn btn-primary btn-sm" data-act="regionUse" data-v="${v}">${r?(rr?"切換到這個課本":"改用這個課本"):"用這個課本開始"}</button>${r?`<button class="btn btn-quiet btn-sm" data-act="zoom-fit">回到我的群島</button>`:`<button class="btn btn-quiet btn-sm" data-act="world-fit">看全世界</button>`}</div>`;
+  card.hidden=false;
+}
+function regionClick(v){Sound.sfx("tap");if(v===W3.activeReg&&rec()){if(isOverview()||W3.focus!==v)tweenCam(homeCam(),900)}else tweenCam(regionCam(v),900)}
+let hoverReg=null;
+function hoverRegion(v){if(hoverReg===v)return;if(hoverReg)W3.regions[hoverReg].banner.el.classList.remove("hover");hoverReg=v;if(v)W3.regions[v].banner.el.classList.add("hover")}
 const ray=window.THREE?new THREE.Raycaster():null,ndc=window.THREE?new THREE.Vector2():null;
-function pick(cx,cy){const r=W3.renderer.domElement.getBoundingClientRect();ndc.set((cx-r.left)/r.width*2-1,-((cy-r.top)/r.height)*2+1);ray.setFromCamera(ndc,W3.camera);const hit=ray.intersectObjects(W3.pickables,true)[0];if(!hit)return null;let o=hit.object;while(o&&!(o.userData&&o.userData.lv))o=o.parent;return o?o.userData.lv:null}
+function pick(cx,cy){const r=W3.renderer.domElement.getBoundingClientRect();ndc.set((cx-r.left)/r.width*2-1,-((cy-r.top)/r.height)*2+1);ray.setFromCamera(ndc,W3.camera);const hit=ray.intersectObjects(W3.pickables,true)[0];if(!hit)return null;let o=hit.object;while(o&&!(o.userData&&(o.userData.lv||o.userData.region)))o=o.parent;if(!o)return null;return o.userData.lv||("R:"+o.userData.region)}
 let hovered=null;
 function hoverNode(id){if(hovered===id)return;if(hovered){const n=W3.nodes[LV[hovered].i];n.g.scale.setScalar(1);W3.pinEls[LV[hovered].i].classList.remove("hover")}hovered=id;if(id){const n=W3.nodes[LV[id].i];n.g.scale.setScalar(1.1);W3.pinEls[LV[id].i].classList.add("hover")}W3.dirty=true}
 function bindWorldInput(cv){
@@ -2473,30 +2823,30 @@ function bindWorldInput(cv){
     if(ptrs.size===1)down={x:e.clientX,y:e.clientY,moved:false,pan:e.button===2||e.shiftKey};
     else if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),mx:(a.x+b.x)/2,my:(a.y+b.y)/2};if(down)down.moved=true}});
   cv.addEventListener("pointermove",e=>{
-    if(!ptrs.has(e.pointerId)){if(e.pointerType==="mouse"&&!hoverRAF){hoverRAF=requestAnimationFrame(()=>{hoverRAF=0;const id=pick(e.clientX,e.clientY);hoverNode(id);cv.classList.toggle("hovering",!!id)})}return}
+    if(!ptrs.has(e.pointerId)){if(e.pointerType==="mouse"&&!hoverRAF){hoverRAF=requestAnimationFrame(()=>{hoverRAF=0;const id=pick(e.clientX,e.clientY);const isR=!!id&&id.startsWith("R:");hoverNode(isR?null:id);hoverRegion(isR&&id!=="R:"+W3.activeReg?id.slice(2):null);cv.classList.toggle("hovering",!!id&&(!isR||id!=="R:"+W3.activeReg||isOverview()))})}return}
     const prev=ptrs.get(e.pointerId);const dx=e.clientX-prev.x,dy=e.clientY-prev.y;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(ptrs.size===2&&pinch){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;CAM.r*=pinch.d/Math.max(1,d);pan(mx-pinch.mx,my-pinch.my);pinch={d,mx,my};return}
     if(!down)return;if(!down.moved&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>5){down.moved=true;cv.classList.add("dragging")}
     if(down.moved){if(down.pan)pan(dx,dy);else rot(dx,dy)}});
   const up=e=>{if(!ptrs.has(e.pointerId))return;ptrs.delete(e.pointerId);cv.classList.remove("dragging");
     if(ptrs.size<2)pinch=null;
-    if(ptrs.size===0&&down){if(!down.moved&&e.type==="pointerup"){const id=pick(e.clientX,e.clientY);if(id)flyToLevel(id,()=>openLevel(id))}down=null}};
+    if(ptrs.size===0&&down){if(!down.moved&&e.type==="pointerup"){const id=pick(e.clientX,e.clientY);if(id&&id.startsWith("R:"))regionClick(id.slice(2));else if(id)flyToLevel(id,()=>openLevel(id))}down=null}};
   cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
-  cv.addEventListener("pointerleave",()=>{if(!ptrs.size){hoverNode(null);cv.classList.remove("hovering")}});
+  cv.addEventListener("pointerleave",()=>{if(!ptrs.size){hoverNode(null);hoverRegion(null);cv.classList.remove("hovering")}});
   cv.addEventListener("wheel",e=>{e.preventDefault();CAM.tw=null;CAM.r*=Math.exp(e.deltaY*.0012);applyCam()},{passive:false});
   cv.addEventListener("contextmenu",e=>e.preventDefault());
-  cv.addEventListener("keydown",e=>{const k=e.key;let used=true;if(k==="ArrowLeft")tweenCam({az:CAM.az+.35},220);else if(k==="ArrowRight")tweenCam({az:CAM.az-.35},220);else if(k==="ArrowUp")tweenCam({pol:CAM.pol-.12},200);else if(k==="ArrowDown")tweenCam({pol:CAM.pol+.12},200);else if(k==="+"||k==="=")tweenCam({r:CAM.r/1.25},220);else if(k==="-"||k==="_")tweenCam({r:CAM.r*1.25},220);else if(k==="0")tweenCam(homeCam(),500);else used=false;if(used)e.preventDefault()});
+  cv.addEventListener("keydown",e=>{const k=e.key;let used=true;if(k==="ArrowLeft")tweenCam({az:CAM.az+.35},220);else if(k==="ArrowRight")tweenCam({az:CAM.az-.35},220);else if(k==="ArrowUp")tweenCam({pol:CAM.pol-.12},200);else if(k==="ArrowDown")tweenCam({pol:CAM.pol+.12},200);else if(k==="+"||k==="=")tweenCam({r:CAM.r/1.25},220);else if(k==="-"||k==="_")tweenCam({r:CAM.r*1.25},220);else if(k==="0")tweenCam(homeCam(),500);else if(k==="9")tweenCam(worldCam(),700);else used=false;if(used)e.preventDefault()});
 }
 let playerJob=null;
 function updateWorldState(){
-  if(!W3.on)return;const r=rec();const nxt=r?nextLevelId(r):"L01";const nIdx=nxt?LV[nxt].i:-1;
+  if(!W3.on)return;const r=rec();const nxt=r?nextLevelId(r):"L01";const nIdx=nxt?LV[nxt].i:-1;W3.nextIdx=nIdx;W3.sizeEp=(W3.sizeEp||0)+1;
   W3.nodes.forEach((n,i)=>{const v=r&&r.levels[n.l.id];n.gm.color.setHex(v?0xF2B52C:ZONE3[n.l.z]);n.gm.emissive.setHex(v?0x5A3A00:0x000000);n.ring.visible=i===nIdx;n.star.visible=!!(v&&v.best>=n.l.q.length);n.gem.visible=!(r&&i===nIdx);
     const pin=W3.pinEls[i];pin.classList.toggle("done",!!v);pin.classList.toggle("next",i===nIdx);pin.querySelector(".ps").textContent=v?`★${v.best}`:"";pin.setAttribute("aria-label",`第 ${i+1} 關 ${n.l.name}${v?`，已完成，${v.best} 顆星`:i===nIdx?"，下一站":""}`)});
   const upto=nIdx>=0?W3.nodeDot[nIdx]:W3.dots.count;const gold=new THREE.Color(0xF5C542),wht=new THREE.Color(0xFFFFFF);for(let k=0;k<W3.dots.count;k++)W3.dots.setColorAt(k,k<upto&&r?gold:wht);W3.dots.instanceColor.needsUpdate=true;
   if(r&&r.job!==playerJob){if(W3.player)W3.root.remove(W3.player);W3.player=mergeStatic(makeKid(r.job,"idle"));W3.player.scale.setScalar(.5);W3.root.add(W3.player);playerJob=r.job}
   if(!r&&W3.player){W3.root.remove(W3.player);W3.player=null;playerJob=null}
   if(W3.player){if(nIdx>=0){const p=W3.nodes[nIdx].p;W3.player.position.set(p.x,0,p.z);W3.playerY=LAND_Y+.19;W3.playerNode=nIdx}else{const L=W3.lh.g.position;W3.player.position.set(L.x-.6,0,L.z+.5);W3.playerY=.33;W3.playerNode=-1}W3.player.position.y=W3.playerY}
-  W3.prog=doneOf(r)/LEVELS.length;updateLighthouse();W3.lhTag.textContent=`寶島燈塔・亮度 ${Math.round(W3.prog*100)}%`;
+  W3.prog=doneOf(r)/LEVELS.length;updateLighthouse();if(W3.regions){W3.focusKey=null}W3.lhTag.textContent=`寶島燈塔・亮度 ${Math.round(W3.prog*100)}%`;
   W3.dirty=true;
 }
 function fallbackFlat(msg){
@@ -2507,16 +2857,27 @@ function fallbackFlat(msg){
 /* 平面後備地圖 */
 function smoothClosed(p){let d=`M${p[0][0].toFixed(1)},${p[0][1].toFixed(1)}`;const n=p.length;for(let i=0;i<n;i++){const p0=p[(i-1+n)%n],p1=p[i],p2=p[(i+1)%n],p3=p[(i+2)%n];d+=`C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)},${(p1[1]+(p2[1]-p0[1])/6).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)},${(p2[1]-(p3[1]-p1[1])/6).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`}return d+"Z"}
 function smoothOpen(p){let d=`M${p[0][0]},${p[0][1]}`;for(let i=0;i<p.length-1;i++){const p0=p[i-1]||p[i],p1=p[i],p2=p[i+1],p3=p[i+2]||p2;d+=`C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)},${(p1[1]+(p2[1]-p0[1])/6).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)},${(p2[1]-(p3[1]-p1[1])/6).toFixed(1)} ${p2[0]},${p2[1]}`}return d}
-function blobPts(I,scale){const pts=[];const n=44;for(let i=0;i<n;i++){const th=i/n*Math.PI*2;const r=scale*(1+.075*Math.sin(3*th+I.seed)+.05*Math.sin(5*th+I.seed*1.7)+.03*Math.sin(8*th+I.seed*2.3));pts.push([I.cx+Math.cos(th)*I.rx*r,I.cy+Math.sin(th)*I.ry*r])}return pts}
-function inIsland(x,y,pad){return ISLANDS.some(I=>((x-I.cx)/(I.rx*pad))**2+((y-I.cy)/(I.ry*pad))**2<1)}
+function blobPts(I,scale){return I.pts||[]}
+function inIsland(x,y,pad){return layoutOf(VER.id).zoneAt(x,y,-(pad||1)*30)>=0}
 let mapBuilt=false;
 function buildMapBase(){
-  let waves="";const R=rnd(7);
-  for(let k=0;k<70&&waves.split("<path").length<26;k++){const x=30+R()*940,y=30+R()*580;if(inIsland(x,y,1.28)||(Math.hypot(x-605,y-335)<70))continue;waves+=`<path class="wave" d="M${x.toFixed(0)},${y.toFixed(0)}q7,-6 14,0t14,0"/>`}
-  const isl=ISLANDS.map((I,i)=>`<g class="z${i}"><path class="shallow" d="${smoothClosed(blobPts(I,1.12))}"/><path class="land" d="${smoothClosed(blobPts(I,1))}" style="fill:color-mix(in srgb,var(--z) 20%,var(--card));stroke:color-mix(in srgb,var(--z) 70%,var(--ink))"/><path class="contour" d="${smoothClosed(blobPts(I,.78))}" style="stroke:var(--z)"/></g>`).join("");
-  const names=ISLANDS.map((I,i)=>`<g class="z${i}"><text class="iunit" x="${I.lx}" y="${I.ly-26}">${esc(ZONES[i].unit)}</text><text class="iname" x="${I.lx}" y="${I.ly}" style="fill:color-mix(in srgb,var(--z) 75%,var(--ink))">${esc(ZONES[i].name)}</text></g>`).join("");
-  const rose=`<g class="rose" transform="translate(605 335)"><circle r="40"/><circle r="30" stroke-dasharray="2 4"/><path d="M0,-36L7,0L0,36L-7,0Z"/><path d="M-36,0L0,6L36,0L0,-6Z" opacity=".5"/><text y="-46">N</text></g>`;
+  const G=layoutOf(VER.id);let waves="";const R=rnd(7);
+  for(let k=0;k<90&&waves.split("<path").length<26;k++){const x=30+R()*940,y=30+R()*580;if(G.zoneAt(x,y,-42)>=0||(Math.hypot(x-G.lh[0],y-G.lh[1])<70))continue;waves+=`<path class="wave" d="M${x.toFixed(0)},${y.toFixed(0)}q7,-6 14,0t14,0"/>`}
+  const land=(pt)=>smoothClosed(pt.pts)+(pt.hole?" "+smoothClosed(pt.hole.slice().reverse()):"");
+  const feat=Z=>Z.feat.map(f=>{
+    if(f.k==="lake")return `<ellipse class="lake" cx="${f.x}" cy="${f.y}" rx="${f.rx}" ry="${f.ry}"/>`;
+    if(f.k==="river")return `<path class="river" d="${smoothOpen(f.pts)}" style="stroke-width:${f.w*.8}"/>`;
+    if(f.k==="ridge"||f.k==="peaks"){const pts=f.k==="ridge"?spaced(f.pts,f.n||5):[[f.x-f.r*.4,f.y],[f.x+f.r*.3,f.y-f.r*.25],[f.x+f.r*.1,f.y+f.r*.35]];return pts.map(([x,y])=>`<path class="mtn" d="M${(x-18).toFixed(0)},${(y+12).toFixed(0)}L${x.toFixed(0)},${(y-16).toFixed(0)}L${(x+18).toFixed(0)},${(y+12).toFixed(0)}Z"/>`).join("")}
+    if(f.k==="mesa")return `<circle class="mesa" cx="${f.x}" cy="${f.y}" r="${f.r}"/><circle class="mesa" cx="${f.x}" cy="${f.y}" r="${f.r*.6}"/>`;
+    if(f.k==="wall"||f.k==="bridge")return `<path class="${f.k}" d="M${f.pts[0].join(",")}L${f.pts[1].join(",")}"/>`;
+    return ""}).join("");
+  const isl=G.zones.map((Z,i)=>`<g class="z${i}">${Z.parts.map(pt=>`<path class="shallow" d="${smoothClosed(offsetPoly(pt.pts,18))}"/>`).join("")}${Z.parts.map(pt=>`<path class="land" fill-rule="evenodd" d="${land(pt)}" style="fill:color-mix(in srgb,var(--z) 20%,var(--card));stroke:color-mix(in srgb,var(--z) 70%,var(--ink))"/>`).join("")}${feat(Z)}</g>`).join("");
+  const VV=VERSIONS[VER.id];
+  const names=G.zones.map((Z,i)=>{const [x,y]=G.tags[i];return `<g class="z${i}"><text class="iunit" x="${x.toFixed(0)}" y="${(y-36).toFixed(0)}">${esc(ZONES[i].unit)}</text><text class="iname" x="${x.toFixed(0)}" y="${(y-10).toFixed(0)}" style="fill:color-mix(in srgb,var(--z) 75%,var(--ink))">${esc(ZONES[i].name)}</text></g>`}).join("");
+  const rose=`<g class="rose" transform="translate(${G.lh[0]} ${G.lh[1]})"><circle r="40"/><circle r="30" stroke-dasharray="2 4"/><path d="M0,-36L7,0L0,36L-7,0Z"/><path d="M-36,0L0,6L36,0L0,-6Z" opacity=".5"/><text y="-46">N</text></g>`;
   $("#map").innerHTML=`<rect class="sea" x="0" y="0" width="1000" height="640"/>${waves}${isl}${rose}<path class="route" d="${smoothOpen(MAP_NODES)}"/>${names}<g id="mapNodes"></g>`;
+  $("#map").setAttribute("aria-label",`${VV.pub}版${VV.sem}群島地圖，18 個關卡地點`);
+  const t=$("#hudTitle");if(t){t.textContent=`${VV.pub}版・${VV.sem}`;$("#hudEyebrow").textContent="我的課本群島"}
   mapBuilt=true;
 }
 function renderMap(){
@@ -2559,8 +2920,8 @@ function renderVerPick(){
   $("#semSeg").innerHTML=VER_SEMS.map(s=>`<button type="button" data-act="vsem" data-v="${s}" aria-pressed="${VP.sem===s}">${s==="五上"?"五年級上學期":"六年級上學期"}<small>${s}</small></button>`).join("");
   const V=verOf(VP.pub,VP.sem);$("#verUnits").innerHTML=V?V.zones.map(z=>`<span>${esc(z.unit.replace(/^第|單元$/g,""))}｜${esc(z.title)}</span>`).join(""):`<span>${VP.pub||VP.sem?"再選一下另一個選項":"請先選擇出版社和學期"}</span>`}
 function renderJobs(){$("#jobs").innerHTML=Object.entries(JOBS).map(([k,j])=>`<button type="button" class="job ${j.z}" data-act="job" data-job="${k}" aria-pressed="${pickedJob===k}">${avatarHTML(k,"full")}<div><b>${esc(j.name)}</b><span>${esc(j.desc)}</span></div></button>`).join("")}
-function openSetup(){
-  const r=rec();pickedJob=r?r.job:null;{const V0=r?VERSIONS[r.ver]:VERSIONS[STORE.lastVer];VP={pub:V0?V0.pub:null,sem:V0?V0.sem:null}}
+function openSetup(pre){
+  const r=rec();pickedJob=r?r.job:null;{const V0=pre&&VERSIONS[pre]?VERSIONS[pre]:r?VERSIONS[r.ver]:VERSIONS[STORE.lastVer];VP={pub:V0?V0.pub:null,sem:V0?V0.sem:null}}
   $("#fName").value=r?r.name:"";$("#fCls").value=r?r.cls:"";$("#fSeat").value=r?r.seat:"";$("#setupErr").textContent="";
   $("#setupClose").hidden=!r;renderJobs();renderVerPick();openLayer("setup");
 }
@@ -3044,6 +3405,9 @@ const ACT={
   "zoom-out"(){if(W3.on)tweenCam({r:CAM.r*1.3},260)},
   "rot-l"(){if(W3.on)tweenCam({az:CAM.az+Math.PI/4},420)},
   "rot-r"(){if(W3.on)tweenCam({az:CAM.az-Math.PI/4},420)},
+  region(b){if(W3.on)regionClick(b.dataset.v);else openSetup(b.dataset.v)},
+  regionUse(b){openSetup(b.dataset.v)},
+  "world-fit"(){if(W3.on)tweenCam(worldCam(),900)},
   "zoom-fit"(){if(W3.on)tweenCam(homeCam(),700)}
 };
 document.addEventListener("click",e=>{const a=e.target.closest("[data-act]");if(!a)return;const fn=ACT[a.dataset.act];if(fn){e.preventDefault();fn(a,e)}
