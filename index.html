@@ -543,6 +543,13 @@ details.lvd summary{cursor:pointer;display:flex;gap:12px;align-items:center;flex
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
+<script>
+/* ===== 放在 GitHub Pages（或其他網站）時的後台設定 =====
+   把 Google Apps Script「網頁應用程式」的網址（結尾是 /exec）貼在下一行的引號裡，
+   網址長得像 https://script.google.com/macros/s/AKfycb.../exec
+   直接用 Apps Script 的網址開啟遊戲時，這一行不會用到，可以保持空白。 */
+window.ISLAND_API_URL = "https://script.google.com/macros/s/AKfycbzWYzvru8Jhr4rJdoAuRB5FjfRReZujhSdm6lTe20ntGeplMHGImNrvrIVQm36BuB0R/exec";
+</script>
 </head>
 <body>
 
@@ -1896,18 +1903,34 @@ function mergeRecords(a,b){
 
 /* ======================= 雲端同步（Google Apps Script） ======================= */
 const S={status:"none",writable:true,online:false,settings:{},classes:[],capsReady:false,zone:0};
-const HAS_GAS=!!(window.google&&google.script&&google.script.run);
-function gs(fn,...args){return new Promise((res,rej)=>{if(!HAS_GAS){rej(new Error("請從 Google Apps Script 的網址開啟"));return}google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args)})}
+const IN_GAS=!!(window.google&&google.script&&google.script.run);
+function normApi(u){u=String(u||"").trim();if(!u)return "";if(/^AKfy[\w-]{20,}$/.test(u))u="https://script.google.com/macros/s/"+u+"/exec";u=u.replace(/[?#].*$/,"");return /^https:\/\/script\.google\.com\/(a\/macros\/[^/]+|macros)\/s\/[\w-]+\/exec$/.test(u)?u:""}
+function apiIdOf(u){const m=/\/s\/([\w-]+)\/exec/.exec(u||"");return m?m[1]:""}
+const API_CFG=normApi(window.ISLAND_API_URL);
+const API_URL=(()=>{if(IN_GAS)return "";let q="";try{q=new URLSearchParams(location.search).get("api")||""}catch(e){}
+  const fq=normApi(q);if(fq){try{localStorage.setItem("island-api",fq)}catch(e){}return fq}
+  let ls="";try{ls=normApi(localStorage.getItem("island-api"))}catch(e){}return ls||API_CFG})();
+const HAS_GAS=IN_GAS||!!API_URL;
+function apiFetch(url,fn,args){
+  const ctl=typeof AbortController!=="undefined"?new AbortController():null;const tm=setTimeout(()=>{if(ctl)ctl.abort()},25000);
+  return fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn,args}),redirect:"follow",credentials:"omit",signal:ctl?ctl.signal:undefined})
+    .catch(()=>{throw new Error("連不到後台：請確認網路正常，並確認 Apps Script 的部署存取權是「任何人」。")})
+    .then(r=>{if(!r.ok)throw new Error("後台回應錯誤（"+r.status+"）");return r.text()})
+    .then(t=>{let j=null;try{j=JSON.parse(t)}catch(e){}if(!j||typeof j.ok!=="boolean")throw new Error("後台沒有回傳資料：請把 Apps Script 的 Code.gs 更新成新版，並建立新版本部署。");if(!j.ok)throw new Error(j.error||"後台發生錯誤");return j.data})
+    .finally(()=>clearTimeout(tm))}
+function gs(fn,...args){if(IN_GAS)return new Promise((res,rej)=>{google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args)});if(!API_URL)return Promise.reject(new Error("尚未設定後台網址"));return apiFetch(API_URL,fn,args)}
+function shareLinks(){if(IN_GAS)return null;const base=location.origin+location.pathname;const own=API_URL&&API_URL!==API_CFG;const stu=base+(own?"?api="+apiIdOf(API_URL):"");return{stu,teacher:stu+(own?"&":"?")+"page=teacher"}}
 function saveFile(name,blob){try{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.rel="noopener";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);return true}catch(e){return false}}
 let syncChain=Promise.resolve();
 async function refreshInfo(){if(!HAS_GAS)return false;try{const info=await gs("apiInit");S.classes=info.classes||[];S.settings=info.settings||{};S.online=true;return true}catch(e){S.online=false;return false}}
 async function initCaps(){
   await refreshInfo();
   S.capsReady=true;
-  $("#menuTeacher").hidden=!HAS_GAS;$("#inviteTeacher").hidden=!HAS_GAS;
+  $("#menuTeacher").hidden=false;$("#inviteTeacher").hidden=false;
   const r=rec();
   if(r&&canSync()){await restoreRemote();queueSync()}else setStatus(r?"local":"none");
-  if(HAS_GAS&&google.script.url)google.script.url.getLocation(loc=>{if(loc&&loc.parameter&&loc.parameter.page==="teacher"){closeLayer("invite");openTeacher()}});
+  if(IN_GAS&&google.script.url)google.script.url.getLocation(loc=>{if(loc&&loc.parameter&&loc.parameter.page==="teacher"){closeLayer("invite");openTeacher()}});
+  else{let pg="";try{pg=new URLSearchParams(location.search).get("page")||""}catch(e){}if(pg==="teacher"){closeLayer("invite");openTeacher()}}
 }
 function canSync(){return !!(HAS_GAS&&S.online&&S.writable)}
 function setStatus(s){S.status=s;const map={none:"冒險準備中",checking:"連線中…",local:"進度存在這台裝置",denied:"班級代碼不正確，尚未同步",syncing:"同步中…",synced:"已同步給老師",error:"同步失敗，稍後再試"};const chip=$("#syncChip");chip.dataset.s=s;$("#syncText").textContent=map[s]||"";chip.setAttribute("aria-label","同步狀態："+(map[s]||""))}
@@ -3119,7 +3142,6 @@ function openSyncInfo(){
 const T={ver:null,token:null,records:[],classes:[],settings:{},sheetUrl:"",tab:"students",cls:"all",err:"",confirm:null,msg:"",loaded:false,busy:false,timer:null,at:0};
 try{T.token=sessionStorage.getItem("baodao-teacher-token")}catch(e){}
 function openTeacher(){
-  if(!HAS_GAS){toast("請用 Google Apps Script 的網址開啟，才能使用教師後台。");return}
   openLayer("teacher");renderTeacher();
   if(T.token)loadTeacher();
   clearInterval(T.timer);T.timer=setInterval(()=>{if(!$("#teacher").hidden&&T.token&&!T.busy&&!document.hidden)loadTeacher(true)},30000);
@@ -3157,6 +3179,14 @@ function renderTeacher(){
 function renderTeacherInner(){
   const el=$("#teacherSheet");
   const head=(extra)=>`<div class="t-head"><div style="margin-right:auto"><div class="eyebrow">Teacher Console</div><h2 id="teacherTitle">教師後台</h2></div>${extra||""}<button class="btn btn-ghost btn-sm" data-act="close" data-layer="teacher">回到遊戲</button></div>`;
+  if(!HAS_GAS){
+    el.innerHTML=`${head()}
+      <p style="max-width:720px">這個網頁還沒有連接到你的 Google 試算表後台。請貼上 Apps Script「網頁應用程式」的網址（結尾是 <b>/exec</b>）。</p>
+      <form id="tApiForm" class="row" style="align-items:end;max-width:760px" novalidate><div class="field" style="flex:1 1 380px"><label for="tApi">後台網址</label><input class="input" id="tApi" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/AKfycb…/exec" data-autofocus></div><button class="btn btn-primary" type="submit">連接</button></form>
+      ${T.msg?`<p class="note" role="status">${esc(T.msg)}</p>`:""}
+      <p class="note">在這裡連接只會記在這台裝置。要讓所有學生自動連到你的後台，請把網址填進 index.html 開頭的 <b>ISLAND_API_URL</b>；或連接後到「班級與部署」複製帶有後台資訊的學生連結。</p>`;
+    return;
+  }
   if(!T.token){
     el.innerHTML=`${head()}
       <form id="tLoginForm" class="row" style="align-items:end;max-width:560px" novalidate><div class="field" style="flex:1 1 240px"><label for="tPw">教師密碼</label><input class="input" id="tPw" type="password" autocomplete="current-password" data-autofocus></div><button class="btn btn-primary" type="submit">登入</button></form>
@@ -3227,13 +3257,13 @@ function tClasses(all){
     </section>
     <section style="display:grid;gap:10px"><h3 style="font-size:20px">學生怎麼使用</h3>
       <ol style="margin:0;padding-left:1.3em;display:grid;gap:8px;font-size:15px">
-        <li>把網頁應用程式的網址（結尾是 <b>/exec</b>）給學生，例如貼在 Google Classroom 或做成 QR Code。</li>
+        ${IN_GAS?`<li>把網頁應用程式的網址（結尾是 <b>/exec</b>）給學生，例如貼在 Google Classroom 或做成 QR Code。</li>`:`<li>把這個遊戲連結給學生，例如貼在 Google Classroom 或做成 QR Code：<div class="row" style="margin-top:6px;gap:8px;align-items:center"><code style="word-break:break-all;font-size:13px">${esc(shareLinks().stu)}</code><button class="btn btn-quiet btn-sm" data-act="tcopy" data-v="${esc(shareLinks().stu)}">複製</button></div></li>`}
         <li>學生打開網址，輸入班級代碼、座號、姓名就能開始；上方顯示「已同步給老師」就成功了。</li>
         <li>作答會依課本版本寫進你的 Google 試算表（例如「進度-康軒五上」工作表），這個後台每 30 秒自動更新。學生看不到彼此的成績。</li>
         <li>網路不穩或同步失敗的學生，可以在選單按「成績回報碼」交給你，再到「匯入回報碼」貼上。</li>
         <li>學生建立冒險者時會自己選課本（康軒、翰林、南一）和學期（五上、六上）。成績依版本寫在試算表的「進度-」工作表，後台上方的選單可以切換版本。</li>
       </ol>
-      <p class="note">教師後台的直接網址：在網頁應用程式網址後面加上 <b>?page=teacher</b>。修改程式後，請到「部署 → 管理部署作業 → 編輯 → 新版本」，網址就不會改變。</p>
+      ${IN_GAS?`<p class="note">教師後台的直接網址：在網頁應用程式網址後面加上 <b>?page=teacher</b>。修改程式後，請到「部署 → 管理部署作業 → 編輯 → 新版本」，網址就不會改變。</p>`:`<p class="note">教師後台的直接網址：<code style="word-break:break-all">${esc(shareLinks().teacher)}</code>。目前連接的後台：<code style="word-break:break-all">${esc(API_URL)}</code>（更新 Code.gs 後，請到「部署 → 管理部署作業 → 編輯 → 新版本」，網址就不會改變）。</p>`}
     </section></div>`;
 }
 function tImport(){
@@ -3401,6 +3431,7 @@ const ACT={
   "t-logout"(){teacherLogout()},
   timport(){teacherImport()},
   csv(){teacherCSV()},
+  tcopy(b){const v=b.dataset.v;const done=()=>toast("已複製連結");try{navigator.clipboard.writeText(v).then(done,()=>{window.prompt("請複製這個連結",v)})}catch(e){window.prompt("請複製這個連結",v)}},
   "zoom-in"(){if(W3.on)tweenCam({r:CAM.r/1.3},260)},
   "zoom-out"(){if(W3.on)tweenCam({r:CAM.r*1.3},260)},
   "rot-l"(){if(W3.on)tweenCam({az:CAM.az+Math.PI/4},420)},
@@ -3415,6 +3446,8 @@ document.addEventListener("click",e=>{const a=e.target.closest("[data-act]");if(
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches('.node[data-act]')){e.preventDefault();openLevel(e.target.dataset.id)}});
 document.addEventListener("change",e=>{if(e.target.id==="tCls"){T.cls=e.target.value;renderTeacher()}if(e.target.id==="tVer"){T.ver=e.target.value;T.confirm=null;renderTeacher()}});
 document.addEventListener("submit",async e=>{
+  if(e.target.id==="tApiForm"){e.preventDefault();const u=normApi($("#tApi").value);if(!u){T.msg="網址格式不對：請貼上 Apps Script 部署後、結尾是 /exec 的網址。";renderTeacher();return}
+    T.msg="連接中…";renderTeacher();try{await apiFetch(u,"apiInit",[]);try{localStorage.setItem("island-api",u)}catch(x){}location.href=location.pathname+"?page=teacher"}catch(err){T.msg=String(err&&err.message||err);renderTeacher()}return}
   if(e.target.id==="tLoginForm"){e.preventDefault();const pw=$("#tPw").value;if(!pw){T.msg="請輸入教師密碼。";renderTeacher();return}
     T.msg="登入中…";renderTeacher();
     try{T.token=await gs("apiTeacherLogin",pw);try{sessionStorage.setItem("baodao-teacher-token",T.token)}catch(x){}T.msg="";$("#tPw")&&($("#tPw").value="");renderTeacher();loadTeacher()}
